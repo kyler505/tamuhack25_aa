@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Results</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .search-results {
+            max-width: 1200px;
+            margin: auto;
+            padding: 20px;
+        }
+        .minimal-search-bar {
+            max-width: 100%; /* Match the width of flight result boxes */
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            margin-bottom: 20px;
+        }
+        .minimal-search-bar .form-group {
+            margin-bottom: 0; /* Remove margin for compact layout */
+        }
+        .minimal-search-bar .form-control {
+            padding: 8px;
+            font-size: 14px;
+        }
+        .minimal-search-bar .btn-primary {
+            padding: 10px 20px;
+            font-size: 16px;
+            height: 100%; /* Make the button fill the height of the row */
+        }
+        .flight-card {
+            max-width: 100%; /* Match the width of the search bar */
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .flight-card h5 {
+            margin-bottom: 15px;
+            font-size: 1.25rem;
+            color: #333;
+        }
+        .flight-card .flight-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .flight-card .flight-info .time {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .flight-card .flight-info .airport {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        .flight-card .duration-price {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+        }
+        .flight-card .duration {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        .flight-card .price {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #28a745;
+        }
+        .flight-card .btn-details {
+            width: 100%;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="search-results">
+        <h1 class="text-center mb-4">Search Results</h1>
+        <!-- Display logged-in user and logout button -->
+        <div class="text-end mb-3">
+            <span>Welcome, {{ session.username }}!</span>
+            <a href="{{ url_for('logout') }}" class="btn btn-danger ms-2">Logout</a>
+        </div>
+
+        <!-- Minimal Search Bar -->
+        <div class="minimal-search-bar">
+            <form action="{{ url_for('search') }}" method="POST">
+                <div class="row align-items-center">
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label for="departure" class="form-label">From</label>
+                            <input type="text" class="form-control" id="departure" name="departure" placeholder="City or airport" required>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label for="destination" class="form-label">To</label>
+                            <input type="text" class="form-control" id="destination" name="destination" placeholder="City or airport" required>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label for="departure_date" class="form-label">Departure</label>
+                            <input type="date" class="form-control" id="departure_date" name="departure_date" required>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label for="return_date" class="form-label">Return</label>
+                            <input type="date" class="form-control" id="return_date" name="return_date">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label for="passengers" class="form-label">Passengers</label>
+                            <select class="form-select" id="passengers" name="passengers">
+                                <option value="1">1 Adult</option>
+                                <option value="2">2 Adults</option>
+                                <option value="3">3 Adults</option>
+                                <option value="4">4 Adults</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary w-100" style="margin-top: 24px;">Search</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Search Summary -->
+        <div class="filters mb-4">
+            <h4>Search Summary</h4>
+            <p>Get an overview of your flight options</p>
+            <button class="btn btn-secondary">View summary</button>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters mb-4">
+            <h4>Filters</h4>
+            <p>Showing {{ results|length }} results</p>
+            <div class="d-flex">
+                <div class="me-3">
+                    <h6>Stops</h6>
+                    <p>Any {{ results|length }}</p>
+                    <p>Direct only 78</p>
+                </div>
+                <div>
+                    <h6>Best</h6>
+                    <p>We look at the price, travel time, number of stops, and baggage allowance to determine which options you might like best.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flight Results -->
+        <div class="flight-results">
+            {% for flight in results %}
+            <div class="flight-card">
+                <h5>{{ flight.airline }}</h5>
+                <div class="flight-info">
+                    <div>
+                        <div class="time">{{ flight.departure_time }}</div>
+                        <div class="date">{{ flight.departure_date }}</div>
+                        <div class="location">{{ flight.departure_city }} ({{ flight.departure_airport }})</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="duration">{{ flight.duration }}</div>
+                        <div class="arrow">→</div>
+                    </div>
+                    <div>
+                        <div class="time">{{ flight.arrival_time }}</div>
+                        <div class="date">{{ flight.arrival_date }}</div>
+                        <div class="location">{{ flight.arrival_city }} ({{ flight.arrival_airport }})</div>
+                    </div>
+                </div>
+                <div class="price-section">
+                    <div class="price">${{ flight.price }}</div>
+                    <button class="btn btn-primary btn-details">View details</button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
