@@ -1,6 +1,6 @@
 import json
 import os
-from database import init_db, add_user, add_aa_flight, clear_airline_data
+from database import init_db, add_user, clear_airline_data
 
 
 
@@ -8,9 +8,6 @@ def main():
     # initialize the database
     init_db()
     clear_airline_data()
-
-    
-    # gets data from the generated flights, and adds it to the database into the aa_flights table
     
         
     # example data for users
@@ -33,28 +30,28 @@ def main():
         }
     ]
 
-    # Get the directory of the current script
-    script_dir = os.path.dirname(__file__)
+    # # Get the directory of the current script
+    # script_dir = os.path.dirname(__file__)
     
-    # Construct the path to the JSON file
-    json_file_path = os.path.join(script_dir, 'Flight-Engine\\generatedFlights.json')
+    # # Construct the path to the JSON file
+    # json_file_path = os.path.join(script_dir, 'Flight-Engine\\generatedFlights.json')
     
-    # Load JSON data from file
-    with open(json_file_path, 'r') as file:
-        aa_flights = json.load(file)
-        for flight in aa_flights:
-            # Calculate flight_time in hours
-            flight_time = flight["duration"]["hours"] + flight["duration"]["minutes"] / 60
+    # # Load JSON data from file
+    # with open(json_file_path, 'r') as file:
+    #     aa_flights = json.load(file)
+    #     for flight in aa_flights:
+    #         # Calculate flight_time in hours
+    #         flight_time = flight["duration"]["hours"] + flight["duration"]["minutes"] / 60
     
-            # Add the flight to the database
-            add_aa_flight(
-                flight_time=flight_time,
-                price=flight["price"],
-                distance=flight["distance"]
-            )
+    #         # Add the flight to the database
+    #         add_aa_flight(
+    #             flight_time=flight_time,
+    #             price=flight["price"],
+    #             distance=flight["distance"]
+    #         )
 
 
-    # add example users into the database
+    # # add example users into the database
     for user in users:
         add_user(
             username=user["username"],

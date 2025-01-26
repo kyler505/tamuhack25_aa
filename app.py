@@ -143,7 +143,7 @@ def search():
             "arrival_airport": outbound_flight.get("destination", {}).get("code", "N/A"),
             "arrival_city": outbound_flight.get("destination", {}).get("city", "N/A"),
             "duration": outbound_flight.get("duration", {}).get("locale", "N/A"),
-            "price": "N/A"  # Replace with actual price data if available
+            "price": outbound_flight.get("price", "N/A")
         }
 
         # For round-trip, pair outbound flight with a return flight
@@ -164,7 +164,7 @@ def search():
                     "arrival_airport": return_flight.get("destination", {}).get("code", "N/A"),
                     "arrival_city": return_flight.get("destination", {}).get("city", "N/A"),
                     "duration": return_flight.get("duration", {}).get("locale", "N/A"),
-                    "price": "N/A"  # Replace with actual price data if available
+                    "price": return_flight.get("price", "N/A")
                 }
 
                 # Pair outbound and return flights

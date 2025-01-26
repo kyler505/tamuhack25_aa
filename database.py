@@ -1,5 +1,6 @@
 # database.py
 import sqlite3
+import json
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 import random
@@ -33,16 +34,18 @@ def init_db():
         
         conn.commit()
 
-def add_user(username, password):
+def add_user(username, password, past_flights=None):
     """Add a new user to the database."""
     password_hash = generate_password_hash(password)
+    # Serialize past_flights to JSON if it exists
+    past_flights_json = json.dumps(past_flights) if past_flights else None
     try:
         with sqlite3.connect(DATABASE) as conn:
             cursor = conn.cursor()
             cursor.execute('''
-                INSERT INTO users (username, password_hash)
-                VALUES (?, ?)
-            ''', (username, password_hash))
+                INSERT INTO users (username, password_hash, past_flights)
+                VALUES (?, ?, ?)
+            ''', (username, password_hash, past_flights_json))
             conn.commit()
         return True
     except sqlite3.IntegrityError:
@@ -81,3 +84,36 @@ def get_user_details(username):
                 'username': user[0]
             }
         return None
+
+# clears the airline table
+def clear_airline_data():
+    """Delete all rows from the airline_data table."""
+    with sqlite3.connect(DATABASE) as conn:
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM airline_data')
+        conn.commit()
+        print("Cleared airline_data table.")
+
+# # remove and add new users
+# def delete_all_users():
+#     """Delete all rows from the users table."""
+#     with sqlite3.connect(DATABASE) as conn:
+#         cursor = conn.cursor()
+#         cursor.execute('DELETE FROM users')
+#         conn.commit()
+#         print("All users deleted successfully.")
+
+# def add_past_flights_column():
+#     """Add the past_flights column to the users table."""
+#     with sqlite3.connect(DATABASE) as conn:
+#         cursor = conn.cursor()
+#         # Check if the column already exists
+#         cursor.execute("PRAGMA table_info(users)")
+#         columns = [column[1] for column in cursor.fetchall()]
+#         if 'past_flights' not in columns:
+#             # Add the past_flights column
+#             cursor.execute('ALTER TABLE users ADD COLUMN past_flights TEXT')
+#             conn.commit()
+#             print("Added past_flights column to the users table.")
+#         else:
+#             print("past_flights column already exists.")
