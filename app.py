@@ -25,13 +25,12 @@ def login():
         username = request.form['username']
         password = request.form['password']
 
-        # Verify the username and password
         if database.verify_user(username, password):
-            session['username'] = username  # Store the username in the session
-            return redirect(url_for('flight_search'))  # Redirect to flight search on successful login
+            session['username'] = username
+            return redirect(url_for('flight_search'))
         else:
-            flash('Invalid username or password', 'error')  # Show error message
-            return render_template('login.html', username=username)  # Retain the username in the form
+            flash('Invalid username or password', 'error')
+            return render_template('login.html', username=username)
     return render_template('login.html')
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -52,19 +51,18 @@ def register():
 
 @app.route('/logout')
 def logout():
-    session.pop('username', None)  # Remove the username from the session
-    return redirect(url_for('login'))  # Redirect to login page without a success message
+    session.pop('username', None)
+    return redirect(url_for('login'))
 
 @app.route('/flight_search')
 def flight_search():
-    # Check if the user is logged in
     if 'username' not in session:
         flash('You need to log in to access this page.', 'error')
         return redirect(url_for('login'))
 
-    # Retrieve the user's last search from the session
-    last_search = session.get('last_search', None)
-    return render_template('flight_search.html', last_search=last_search)
+    # Fetch past flights from the database
+    past_flights = database.get_past_flights()
+    return render_template('flight_search.html', past_flights=past_flights)
 
 @app.route('/search', methods=['POST'])
 def search():
@@ -180,19 +178,13 @@ def search():
 
 @app.route('/my_account')
 def my_account():
-    # Check if the user is logged in
     if 'username' not in session:
         flash('You need to log in to access this page.', 'error')
         return redirect(url_for('login'))
 
-    # Fetch user details from the database
     username = session['username']
-    user = database.get_user_details(username)  # Implement this function in your database module
-
-    # Fetch booking history (if applicable)
-    bookings = database.get_user_bookings(username)  # Implement this function in your database module
-
-    return render_template('my_account.html', user=user, bookings=bookings)
+    user = database.get_user_details(username)
+    return render_template('my_account.html', user=user)
 
 if __name__ == '__main__':
     app.run(debug=True)

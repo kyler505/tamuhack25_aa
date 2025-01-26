@@ -1,3 +1,4 @@
+<!-- templates/my_account.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,33 +16,24 @@
             text-align: center;
             margin-bottom: 30px;
         }
-        .account-details, .booking-history {
+        .account-details {
             background-color: #f9f9f9;
             border: 1px solid #ddd;
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 20px;
         }
-        .booking-card {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 10px;
-            background-color: #fff;
-        }
-        .booking-card h5 {
-            margin-bottom: 10px;
-        }
-        .booking-card p {
-            margin: 5px 0;
-        }
         .back-to-search {
+            display: flex;
+            justify-content: flex-end;
             margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
+
     <div class="account-container">
+
         <!-- Header -->
         <div class="account-header">
             <h1>My Account</h1>
@@ -50,38 +42,14 @@
 
         <!-- Back to Search Button -->
         <div class="back-to-search">
-            <div class="d-flex justify-content-end">
-                <a href="{{ url_for('flight_search') }}" class="btn btn-secondary">Back to Search</a>
-            </div>
+            <a href="{{ url_for('flight_search') }}" class="btn btn-secondary">Back to Search</a>
         </div>
 
         <!-- Account Details -->
         <div class="account-details">
             <h3>Account Details</h3>
             <p><strong>Username:</strong> {{ user.username }}</p>
-            <p><strong>Email:</strong> {{ user.email }}</p>
-            <p><strong>Member Since:</strong> {{ user.join_date }}</p>
             <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
-        </div>
-
-        <!-- Booking History -->
-        <div class="booking-history">
-            <h3>Booking History</h3>
-            {% if bookings %}
-                {% for booking in bookings %}
-                <div class="booking-card">
-                    <h5>Booking #{{ booking.id }}</h5>
-                    <p><strong>Departure:</strong> {{ booking.departure_city }} ({{ booking.departure_airport }})</p>
-                    <p><strong>Destination:</strong> {{ booking.destination_city }} ({{ booking.destination_airport }})</p>
-                    <p><strong>Departure Date:</strong> {{ booking.departure_date }}</p>
-                    <p><strong>Return Date:</strong> {{ booking.return_date if booking.return_date else 'One-way' }}</p>
-                    <p><strong>Passengers:</strong> {{ booking.passengers }}</p>
-                    <p><strong>Total Price:</strong> ${{ booking.total_price }}</p>
-                </div>
-                {% endfor %}
-            {% else %}
-                <p>No bookings found.</p>
-            {% endif %}
         </div>
     </div>
 

@@ -1,13 +1,14 @@
 # database.py
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
+from datetime import datetime, timedelta
+import random
 
 # Database file name
 DATABASE = 'users.db'
 
 def init_db():
-    """Initialize the database and create the users and bookings tables if they don't exist."""
+    """Initialize the database and create the tables if they don't exist."""
     with sqlite3.connect(DATABASE) as conn:
         cursor = conn.cursor()
         
@@ -16,26 +17,21 @@ def init_db():
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE NOT NULL,
-                password_hash TEXT NOT NULL,
-                email TEXT,  -- Add the email column
-                join_date TEXT  -- Add the join_date column
+                password_hash TEXT NOT NULL
             )
         ''')
         
-        # Create the bookings table
+        # Create the airline_data table for past flights
         cursor.execute('''
-            CREATE TABLE IF NOT EXISTS bookings (
+            CREATE TABLE IF NOT EXISTS airline_data (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT NOT NULL,
+                flight_number TEXT NOT NULL,
                 departure_city TEXT NOT NULL,
-                departure_airport TEXT NOT NULL,
                 destination_city TEXT NOT NULL,
-                destination_airport TEXT NOT NULL,
-                departure_date TEXT NOT NULL,
-                return_date TEXT,
-                passengers INTEGER NOT NULL,
-                total_price REAL NOT NULL,
-                FOREIGN KEY (username) REFERENCES users(username)
+                departure_time TEXT NOT NULL,
+                arrival_time TEXT NOT NULL,
+                price REAL NOT NULL,
+                distance REAL NOT NULL
             )
         ''')
         
@@ -44,14 +40,13 @@ def init_db():
 def add_user(username, password):
     """Add a new user to the database."""
     password_hash = generate_password_hash(password)
-    join_date = datetime.now().strftime('%Y-%m-%d')
     try:
         with sqlite3.connect(DATABASE) as conn:
             cursor = conn.cursor()
             cursor.execute('''
-                INSERT INTO users (username, password_hash, join_date)
-                VALUES (?, ?, ?)
-            ''', (username, password_hash, join_date))
+                INSERT INTO users (username, password_hash)
+                VALUES (?, ?)
+            ''', (username, password_hash))
             conn.commit()
         return True
     except sqlite3.IntegrityError:
@@ -78,43 +73,55 @@ def user_exists(username):
             SELECT id FROM users WHERE username = ?
         ''', (username,))
         return cursor.fetchone() is not None
-    
+
 def get_user_details(username):
     """Fetch user details from the database."""
     with sqlite3.connect(DATABASE) as conn:
         cursor = conn.cursor()
-        cursor.execute('SELECT username, email, join_date FROM users WHERE username = ?', (username,))
+        cursor.execute('SELECT username FROM users WHERE username = ?', (username,))
         user = cursor.fetchone()
         if user:
             return {
-                'username': user[0],
-                'email': user[1],
-                'join_date': user[2]
+                'username': user[0]
             }
         return None
 
-def get_user_bookings(username):
-    """Fetch booking history for a user."""
+def insert_mock_flight_data():
+    """Insert mock data for past flights into the airline_data table."""
+    cities = ["New York", "Los Angeles", "Chicago", "Houston", "Phoenix", "Philadelphia", "San Antonio", "San Diego", "Dallas", "San Jose"]
     with sqlite3.connect(DATABASE) as conn:
         cursor = conn.cursor()
-        cursor.execute('''
-            SELECT id, departure_city, departure_airport, destination_city, destination_airport,
-                   departure_date, return_date, passengers, total_price
-            FROM bookings
-            WHERE username = ?
-        ''', (username,))
-        bookings = cursor.fetchall()
+        for _ in range(20):  # Insert 20 mock flights
+            flight_number = f"AA{random.randint(100, 999)}"
+            departure_city = random.choice(cities)
+            destination_city = random.choice([city for city in cities if city != departure_city])
+            departure_time = (datetime.now() - timedelta(days=random.randint(1, 30))).strftime("%Y-%m-%d %H:%M:%S")
+            arrival_time = (datetime.now() - timedelta(days=random.randint(1, 30)) + timedelta(hours=random.randint(1, 6))).strftime("%Y-%m-%d %H:%M:%S")
+            price = round(random.uniform(100, 500), 2)
+            distance = round(random.uniform(500, 2000), 2)
+            
+            cursor.execute('''
+                INSERT INTO airline_data (flight_number, departure_city, destination_city, departure_time, arrival_time, price, distance)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (flight_number, departure_city, destination_city, departure_time, arrival_time, price, distance))
+        conn.commit()
+
+def get_past_flights():
+    """Fetch all past flights from the airline_data table."""
+    with sqlite3.connect(DATABASE) as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM airline_data')
+        flights = cursor.fetchall()
         return [
             {
-                'id': booking[0],
-                'departure_city': booking[1],
-                'departure_airport': booking[2],
-                'destination_city': booking[3],
-                'destination_airport': booking[4],
-                'departure_date': booking[5],
-                'return_date': booking[6],
-                'passengers': booking[7],
-                'total_price': booking[8]
+                'id': flight[0],
+                'flight_number': flight[1],
+                'departure_city': flight[2],
+                'destination_city': flight[3],
+                'departure_time': flight[4],
+                'arrival_time': flight[5],
+                'price': flight[6],
+                'distance': flight[7]
             }
-            for booking in bookings
+            for flight in flights
         ]
