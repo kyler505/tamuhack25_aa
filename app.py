@@ -167,10 +167,12 @@ def search():
                     "price": return_flight.get("price", "N/A")
                 }
 
+                combined_price = outbound_data["price"] + (return_data["price"] if return_data else 0)
                 # Pair outbound and return flights
                 filtered_flights.append({
                     "outbound": outbound_data,
-                    "return": return_data
+                    "return": return_data,
+                    "combined_price": combined_price
                 })
         else:
             # For one-way trips, only include outbound flights
