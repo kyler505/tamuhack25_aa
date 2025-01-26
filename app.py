@@ -79,6 +79,26 @@ def flight_search():
     return render_template('flight_search.html', last_search=last_search)
 
 
+def parse_duration(duration_str):
+    """
+    Convert a duration string like "3h 45m" to a float representing total hours.
+    """
+    if not duration_str:
+        return 0.0
+
+    hours = 0.0
+    minutes = 0.0
+
+    # Split the string into hours and minutes
+    if 'h' in duration_str:
+        hours = float(duration_str.split('h')[0])
+    if 'm' in duration_str:
+        minutes = float(duration_str.split('m')[0].split('h')[-1])
+
+    # Convert minutes to hours
+    total_hours = hours + (minutes / 60)
+    return total_hours
+
 @app.route('/search', methods=['POST'])
 def search():
     # Check if the user is logged in
@@ -87,12 +107,13 @@ def search():
         return redirect(url_for('login'))
 
     # Get form data from the search query
-    trip_type = request.form.get('trip_type', 'Round-trip')  # Default to Round-trip
-    departure = request.form.get('departure', '').upper()  # Convert to uppercase for IATA code
-    destination = request.form.get('destination', '').upper()  # Convert to uppercase for IATA code
+    trip_type = request.form.get('trip_type', 'Round-trip')
+    departure = request.form.get('departure', '').upper()
+    destination = request.form.get('destination', '').upper()
     departure_date = request.form.get('departure_date', '')
-    return_date = request.form.get('return_date', '')  # Optional for one-way trips
-    passengers = request.form.get('passengers', '1')  # Default to 1 Adult
+    return_date = request.form.get('return_date', '')
+    passengers = request.form.get('passengers', '1')
+    sort_by = request.form.get('sort_by', 'cheapest')  # Get the sorting option
 
     # Store the search details in the session
     session['last_search'] = {
@@ -101,7 +122,8 @@ def search():
         'destination': destination,
         'departure_date': departure_date,
         'return_date': return_date,
-        'passengers': passengers
+        'passengers': passengers,
+        'sort_by': sort_by  # Store the sorting option in the session
     }
 
     # Validate required fields
@@ -147,7 +169,7 @@ def search():
             "arrival_date": outbound_arrival_time.strftime("%b %d, %Y"),  # Format as "Jan 26, 2025"
             "arrival_airport": outbound_flight.get("destination", {}).get("code", "N/A"),
             "arrival_city": outbound_flight.get("destination", {}).get("city", "N/A"),
-            "duration": outbound_flight.get("duration", {}).get("locale", "N/A"),
+            "duration": outbound_flight.get("duration", {}).get("locale", "0h 0m"),  # Default value if missing
             "price": outbound_flight.get("price", "N/A")
         }
 
@@ -168,26 +190,49 @@ def search():
                     "arrival_date": return_arrival_time.strftime("%b %d, %Y"),  # Format as "Jan 26, 2025"
                     "arrival_airport": return_flight.get("destination", {}).get("code", "N/A"),
                     "arrival_city": return_flight.get("destination", {}).get("city", "N/A"),
-                    "duration": return_flight.get("duration", {}).get("locale", "N/A"),
+                    "duration": return_flight.get("duration", {}).get("locale", "0h 0m"),  # Default value if missing
                     "price": return_flight.get("price", "N/A")
                 }
 
                 combined_price = outbound_data["price"] + (return_data["price"] if return_data else 0)
+                # Calculate total duration for round-trip flights
+                total_duration = parse_duration(outbound_data["duration"]) + parse_duration(return_data["duration"])
+
                 # Pair outbound and return flights
                 filtered_flights.append({
                     "outbound": outbound_data,
                     "return": return_data,
-                    "combined_price": combined_price
+                    "combined_price": combined_price,
+                    "total_duration": total_duration  # Add total duration for sorting
                 })
         else:
             # For one-way trips, only include outbound flights
+            total_duration = parse_duration(outbound_data["duration"])
             filtered_flights.append({
                 "outbound": outbound_data,
-                "return": None  # No return flight for one-way trips
+                "return": None,  # No return flight for one-way trips
+                "combined_price": outbound_data["price"],
+                "total_duration": total_duration  # Add total duration for sorting
             })
 
+    # Sort the flights based on the selected option
+    if sort_by == 'cheapest':
+        filtered_flights.sort(key=lambda x: x['combined_price'])
+    elif sort_by == 'fastest':
+        filtered_flights.sort(key=lambda x: x['total_duration'])
+
     # Render the search results template with the filtered flights and search parameters
-    return render_template('search_results.html', results=filtered_flights, trip_type=trip_type, departure=departure, destination=destination, departure_date=departure_date, return_date=return_date, passengers=passengers)
+    return render_template(
+        'search_results.html',
+        results=filtered_flights,
+        trip_type=trip_type,
+        departure=departure,
+        destination=destination,
+        departure_date=departure_date,
+        return_date=return_date,
+        passengers=passengers,
+        sort_by=sort_by  # Pass the sorting option to the template
+    )
 
 if __name__ == '__main__':
     app.run(debug=True)
