@@ -54,9 +54,24 @@ export class Generator {
 
     // the margin of error for the price should 169.36
     const margin_of_error = 169.36;
+    const average = 474.83;
     // given an average of 474.83, the price should be between 305.47 and 644.19, strictly 2 decimal places
     // use the random_new method to generate a random price from 305.47 to 644.19
-    const price = parseFloat((this.random_new(305.47, 644.19)).toFixed(2));    
+    let price;
+    // const price = parseFloat((this.random_new(305.47, 644.19)).toFixed(2));    
+    // create difference prices depending on distance
+    if (distance < 400) { // partitions is 400, 1000, 1500, 3000
+      price = parseFloat((this.random_new(305.47, 385.47)).toFixed(2));  
+    } 
+    else if (distance < 1000) {
+      price = parseFloat((this.random_new(385.47, 465.47)).toFixed(2));  
+    }
+    else if (distance < 1500) {
+      price = parseFloat((this.random_new(465.47, 545.47)).toFixed(2));  
+    }
+    else {
+      price = parseFloat((this.random_new(545.47, 625.47)).toFixed(2));  
+    }
 
     // Assign random aircraft
     const randAircraft = aircraft[this.random(0, aircraft.length - 1)];
