@@ -37,6 +37,9 @@
             height: 100%;
         }
         .flight-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             max-width: 100%;
             border: 1px solid #ddd;
             border-radius: 8px;
@@ -45,84 +48,114 @@
             background-color: #fff;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
-        .flight-card h5 {
-            margin-bottom: 15px;
-            font-size: 1.25rem;
-            color: #333;
+        .flight-info {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
         }
-        .flight-card .flight-info {
+        .flight-details {
+            flex: 1;
+        }
+        .flight-info-row {
             display: flex;
             justify-content: space-between;
             margin-bottom: 10px;
         }
-        .flight-card .flight-info .time {
-            font-size: 1.1rem;
+        .time {
+            font-size: 1.8rem; /* Enlarge the time */
             font-weight: bold;
+            color: #333;
+        }
+        .date-airport {
+            font-size: 0.9rem; /* Smaller font for date and airport code */
+            color: #666;
+            display: flex;
+            gap: 8px; /* Space between date and airport code */
+        }
+        .date-airport .date {
+            font-weight: bold;
+        }
+        .duration {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        .arrow {
+            font-size: 1.2rem;
             color: #007bff;
         }
-        .flight-card .flight-info .airport {
-            font-size: 0.9rem;
-            color: #666;
-        }
-        .flight-card .duration-price {
+        .price-section {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 15px;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: center;
+            padding-left: 20px;
         }
-        .flight-card .duration {
-            font-size: 0.9rem;
-            color: #666;
-        }
-        .flight-card .price {
-            font-size: 1.25rem;
+        .price {
+            font-size: 1.5rem;
             font-weight: bold;
             color: #28a745;
+            margin-bottom: 10px;
         }
-        .flight-card .btn-details {
+        .btn-details {
+            padding: 10px 20px;
+            font-size: 16px;
             width: 100%;
-            margin-top: 15px;
         }
         .filters {
-            background-color: #fff;
+            max-width: 100%;
+            margin: auto;
             padding: 20px;
+            border: 1px solid #ddd;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background-color: #f9f9f9;
             margin-bottom: 20px;
         }
-        .filters h4 {
-            margin-bottom: 15px;
-            font-size: 1.25rem;
-            color: #333;
+
+        .filter-row {
+            display: flex;
+            gap: 20px; /* Space between filters */
+            align-items: flex-start; /* Align filters at the top */
         }
-        .filters .btn-secondary {
-            margin-top: 10px;
+
+        .price-filter,
+        .stops-filter {
+            flex: 1; /* Make both filters take equal width */
         }
-        .filters .stops-filter {
-            margin-bottom: 20px;
-        }
-        .filters .stops-filter h6 {
+
+        .price-filter h6,
+        .stops-filter h6 {
             margin-bottom: 10px;
             font-size: 1rem;
             color: #333;
         }
-        .filters .stops-filter p {
-            margin-bottom: 5px;
+
+        .price-inputs {
+            display: flex;
+            gap: 10px; /* Space between inputs and button */
+            align-items: center;
+        }
+
+        .price-inputs input {
+            width: 100px; /* Adjust width of price inputs */
+            padding: 8px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .stops-filter p {
+            margin: 5px 0;
             font-size: 0.9rem;
             color: #666;
         }
-        .filters .best-filter {
-            margin-bottom: 20px;
+
+        .stops-filter a {
+            color: #007bff;
+            text-decoration: none;
         }
-        .filters .best-filter h6 {
-            margin-bottom: 10px;
-            font-size: 1rem;
-            color: #333;
-        }
-        .filters .best-filter p {
-            margin-bottom: 5px;
-            font-size: 0.9rem;
-            color: #666;
+
+        .stops-filter a:hover {
+            text-decoration: underline;
         }
         .pagination {
             display: flex;
@@ -146,6 +179,70 @@
         .back-to-search {
             margin-bottom: 20px;
         }
+        /* Modal styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 600px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: absolute;
+            top: -4px;
+            right: 9px;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .flight-details {
+            margin-bottom: 20px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: space-between; /* Align price and button on opposite sides */
+            align-items: center; /* Vertically center the content */
+            padding-top: 20px; /* Add some spacing above the footer */
+            border-top: 1px solid #ddd; /* Add a divider */
+        }
+        .modal-footer .price {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #28a745;
+            margin: 0; /* Remove default margin */
+        }
+        .form-select {
+            padding: 8px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+        }
     </style>
 </head>
 <body>
@@ -165,121 +262,204 @@
         <!-- Minimal Search Bar -->
         <div class="minimal-search-bar">
             <form action="{{ url_for('search') }}" method="POST">
-                <div class="row align-items-center">
-                    <div class="col-md-2">
-                        <div class="form-group">
-                            <label for="departure" class="form-label">From</label>
-                            <input type="text" class="form-control" id="departure" name="departure" placeholder="City or airport" value="{{ departure }}" required>
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="form-group">
-                            <label for="destination" class="form-label">To</label>
-                            <input type="text" class="form-control" id="destination" name="destination" placeholder="City or airport" value="{{ destination }}" required>
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="form-group">
-                            <label for="departure_date" class="form-label">Departure</label>
-                            <input type="text" class="form-control" id="departure_date" name="departure_date" placeholder="Select departure date" value="{{ departure_date }}" required>
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="form-group">
-                            <label for="return_date" class="form-label">Return</label>
-                            <input type="text" class="form-control" id="return_date" name="return_date" placeholder="Select return date" value="{{ return_date }}">
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="form-group">
-                            <label for="passengers" class="form-label">Passengers</label>
-                            <select class="form-select" id="passengers" name="passengers">
-                                <option value="1" {% if passengers == "1" %}selected{% endif %}>1 Adult</option>
-                                <option value="2" {% if passengers == "2" %}selected{% endif %}>2 Adults</option>
-                                <option value="3" {% if passengers == "3" %}selected{% endif %}>3 Adults</option>
-                                <option value="4" {% if passengers == "4" %}selected{% endif %}>4 Adults</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="form-group">
-                            <button type="submit" class="btn btn-primary w-100" style="margin-top: 24px;">Search</button>
-                        </div>
-                    </div>
+              <div class="row align-items-center">
+                <!-- Trip Type Dropdown -->
+                <div class="col-md-2">
+                  <div class="form-group">
+                    <label for="trip_type" class="form-label">Trip Type</label>
+                    <select class="form-select" id="trip_type" name="trip_type" required>
+                      <option value="One-way" {% if trip_type == 'One-way' %}selected{% endif %}>One-way</option>
+                      <option value="Round-trip" {% if trip_type == 'Round-trip' or not trip_type %}selected{% endif %}>Round-trip</option>
+                    </select>
+                  </div>
                 </div>
+          
+                <!-- Departure -->
+                <div class="col-md-2">
+                  <div class="form-group">
+                    <label for="departure" class="form-label">From</label>
+                    <input type="text" class="form-control" id="departure" name="departure" placeholder="City or airport" value="{{ departure }}" required>
+                  </div>
+                </div>
+          
+                <!-- Destination -->
+                <div class="col-md-2">
+                  <div class="form-group">
+                    <label for="destination" class="form-label">To</label>
+                    <input type="text" class="form-control" id="destination" name="destination" placeholder="City or airport" value="{{ destination }}" required>
+                  </div>
+                </div>
+          
+                <!-- Departure Date -->
+                <div class="col-md-2">
+                  <div class="form-group">
+                    <label for="departure_date" class="form-label">Departure</label>
+                    <input type="text" class="form-control" id="departure_date" name="departure_date" placeholder="Select departure date" value="{{ departure_date }}" required>
+                  </div>
+                </div>
+          
+                <!-- Return Date (Conditional) -->
+                <div class="col-md-2" id="returnDateGroup">
+                  <div class="form-group">
+                    <label for="return_date" class="form-label">Return</label>
+                    <input type="text" class="form-control" id="return_date" name="return_date" placeholder="Select return date" value="{{ return_date }}">
+                  </div>
+                </div>
+          
+                <!-- Passengers -->
+                <div class="col-md-2">
+                  <div class="form-group">
+                    <label for="passengers" class="form-label">Passengers</label>
+                    <select class="form-select" id="passengers" name="passengers">
+                      <option value="1" {% if passengers == "1" %}selected{% endif %}>1 Adult</option>
+                      <option value="2" {% if passengers == "2" %}selected{% endif %}>2 Adults</option>
+                      <option value="3" {% if passengers == "3" %}selected{% endif %}>3 Adults</option>
+                      <option value="4" {% if passengers == "4" %}selected{% endif %}>4 Adults</option>
+                    </select>
+                  </div>
+                </div>
+          
+                <!-- Search Button -->
+                <div class="col-md-2">
+                  <div class="form-group">
+                    <button type="submit" class="btn btn-primary w-100" style="margin-top: 24px;">Search</button>
+                  </div>
+                </div>
+              </div>
             </form>
-        </div>
+          </div>
 
         <!-- Filters -->
         <div class="filters">
             <h4>Filters</h4>
             <p>Showing {{ results|length }} results</p>
-            <div class="stops-filter">
+          
+            <div class="filter-row">
+              <!-- Price Filter -->
+              <div class="price-filter">
+                <h6>Price</h6>
+                <div class="price-inputs">
+                  <input type="number" id="minPrice" placeholder="Min price" min="0">
+                  <input type="number" id="maxPrice" placeholder="Max price" min="0">
+                  <button class="btn btn-secondary" onclick="filterByPrice()">Apply</button>
+                </div>
+              </div>
+          
+              <!-- Stops Filter -->
+              <div class="stops-filter">
                 <h6>Stops</h6>
                 <p><a href="#" onclick="filterStops('any')">Any {{ results|length }}</a></p>
                 <p><a href="#" onclick="filterStops('direct')">Direct only 78</a></p>
+              </div>
             </div>
+          
+            <!-- Hidden form for price range -->
+            <form action="/search" method="POST" id="priceFilterForm">
+              <input type="hidden" name="trip_type" value="{{ trip_type }}">
+              <input type="hidden" name="departure" value="{{ departure }}">
+              <input type="hidden" name="destination" value="{{ destination }}">
+              <input type="hidden" name="departure_date" value="{{ departure_date }}">
+              <input type="hidden" name="return_date" value="{{ return_date }}">
+              <input type="hidden" name="passengers" value="{{ passengers }}">
+              <input type="hidden" id="minPriceInput" name="min_price">
+              <input type="hidden" id="maxPriceInput" name="max_price">
+            </form>
         </div>
 
         <!-- Flight Results -->
         <div class="flight-results">
             {% for flight in results %}
             <div class="flight-card" data-page="{{ loop.index0 // 16 + 1 }}">
-                <h5>Outbound Flight</h5>
                 <div class="flight-info">
-                    <div>
+                    <div class="flight-details">
+                    <h5>Outbound Flight</h5>
+                    <div class="flight-info-row">
+                        <div>
                         <div class="time">{{ flight.outbound.departure_time }}</div>
-                        <div class="date">{{ flight.outbound.departure_date }}</div>
-                        <div class="location">{{ flight.outbound.departure_city }} ({{ flight.outbound.departure_airport }})</div>
-                    </div>
-                    <div class="text-center">
+                        <div class="date-airport">
+                            <span class="date">{{ flight.outbound.departure_date }}</span>
+                            <span class="airport">({{ flight.outbound.departure_airport }})</span>
+                        </div>
+                        </div>
+                        <div class="text-center">
                         <div class="duration">{{ flight.outbound.duration }}</div>
                         <div class="arrow">→</div>
-                    </div>
-                    <div>
+                        </div>
+                        <div>
                         <div class="time">{{ flight.outbound.arrival_time }}</div>
-                        <div class="date">{{ flight.outbound.arrival_date }}</div>
-                        <div class="location">{{ flight.outbound.arrival_city }} ({{ flight.outbound.arrival_airport }})</div>
+                        <div class="date-airport">
+                            <span class="date">{{ flight.outbound.arrival_date }}</span>
+                            <span class="airport">({{ flight.outbound.arrival_airport }})</span>
+                        </div>
+                        </div>
                     </div>
-                </div>
-                <div class="price-section">
-                    <div class="price">${{ flight.outbound.price }}</div>
-                </div>
 
-                {% if trip_type == 'Round-trip' and flight.return %}
-                <h5 class="mt-4">Return Flight</h5>
-                <div class="flight-info">
-                    <div>
+                    {% if trip_type == 'Round-trip' and flight.return %}
+                    <h5 class="mt-4">Return Flight</h5>
+                    <div class="flight-info-row">
+                        <div>
                         <div class="time">{{ flight.return.departure_time }}</div>
-                        <div class="date">{{ flight.return.departure_date }}</div>
-                        <div class="location">{{ flight.return.departure_city }} ({{ flight.return.departure_airport }})</div>
-                    </div>
-                    <div class="text-center">
+                        <div class="date-airport">
+                            <span class="date">{{ flight.return.departure_date }}</span>
+                            <span class="airport">({{ flight.return.departure_airport }})</span>
+                        </div>
+                        </div>
+                        <div class="text-center">
                         <div class="duration">{{ flight.return.duration }}</div>
                         <div class="arrow">→</div>
-                    </div>
-                    <div>
+                        </div>
+                        <div>
                         <div class="time">{{ flight.return.arrival_time }}</div>
-                        <div class="date">{{ flight.return.arrival_date }}</div>
-                        <div class="location">{{ flight.return.arrival_city }} ({{ flight.return.arrival_airport }})</div>
+                        <div class="date-airport">
+                            <span class="date">{{ flight.return.arrival_date }}</span>
+                            <span class="airport">({{ flight.return.arrival_airport }})</span>
+                        </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    </div>
+                    <div class="divider"></div>
+                    <div class="price-section">
+                    <div class="price">${{ flight.combined_price }}</div>
+                    <button class="btn btn-primary btn-details" data-flight='{{ flight|tojson }}'>View details</button>
                     </div>
                 </div>
-                <div class="price-section">
-                    <div class="price">${{ flight.return.price }}</div>
-                </div>
-                {% endif %}
-
-                <button class="btn btn-primary btn-details mt-3">View details</button>
             </div>
-            {% endfor %}
-        </div>
+        {% endfor %}
+
+        <!-- Modal for flight details -->
+        <div id="flightDetailsModal" class="modal">
+            <div class="modal-content">
+              <span class="close">&times;</span>
+              <h2>Flight Details</h2>
+              <div class="flight-details">
+                <h3>Outbound Flight</h3>
+                <p><strong>Departure:</strong> <span id="modalDepartureTime"></span> - <span id="modalDepartureAirport"></span></p>
+                <p><strong>Arrival:</strong> <span id="modalArrivalTime"></span> - <span id="modalArrivalAirport"></span></p>
+                <p><strong>Duration:</strong> <span id="modalDuration"></span></p>
+                <p><strong>Aircraft:</strong> <span id="modalAircraft"></span></p>
+              </div>
+              <div class="flight-details" id="modalReturnDetails">
+                <h3>Return Flight</h3>
+                <p><strong>Departure:</strong> <span id="modalReturnDepartureTime"></span> - <span id="modalReturnDepartureAirport"></span></p>
+                <p><strong>Arrival:</strong> <span id="modalReturnArrivalTime"></span> - <span id="modalReturnArrivalAirport"></span></p>
+                <p><strong>Duration:</strong> <span id="modalReturnDuration"></span></p>
+                <p><strong>Aircraft:</strong> <span id="modalReturnAircraft"></span></p>
+              </div>
+              <div class="divider"></div> <!-- Add a divider -->
+              <div class="modal-footer">
+                <div class="price"><span id="modalPrice"></span></div> <!-- Move price here -->
+                <button class="btn btn-primary">Book Now</button>
+              </div>
+            </div>
+          </div>
 
         <!-- Pagination -->
         <nav aria-label="Page navigation">
             <ul class="pagination">
                 {% for page_num in range(1, (results|length // 16) + 2) %}
                 <li class="page-item {% if page_num == 1 %}active{% endif %}">
-                    <a class="page-link" href="#" onclick="showPage({{ page_num }})">{{ page_num }}</a>
+                    <a class="page-link" href="#" onclick="showPage({ page_num })">{{ page_num }}</a>
                 </li>
                 {% endfor %}
             </ul>
@@ -378,6 +558,102 @@
 
         // Initialize the first page as active
         showPage(1);
+
+        // Function to filter flights by price
+        function filterByPrice() {
+            const minPrice = parseFloat(document.getElementById('minPrice').value) || 0;
+            const maxPrice = parseFloat(document.getElementById('maxPrice').value) || Infinity;
+
+            document.querySelectorAll('.flight-card').forEach(card => {
+            const price = parseFloat(card.querySelector('.price').textContent.replace('$', ''));
+            if (price >= minPrice && price <= maxPrice) {
+                card.style.display = 'block'; // Show the flight card
+            } else {
+                card.style.display = 'none'; // Hide the flight card
+            }
+            });
+        }
+
+        // Function to set hidden price range inputs before form submission
+        function setPriceRange() {
+            const minPrice = document.getElementById('minPrice').value;
+            const maxPrice = document.getElementById('maxPrice').value;
+            document.getElementById('minPriceInput').value = minPrice;
+            document.getElementById('maxPriceInput').value = maxPrice;
+        }
+
+        // Add event listener to form submission
+        document.querySelector('form').addEventListener('submit', setPriceRange);
+
+        // Get the modal
+        const modal = document.getElementById('flightDetailsModal');
+        const closeBtn = document.querySelector('.close');
+
+        // Function to open the modal and populate flight details
+        function openFlightDetails(flight) {
+            // Populate outbound flight details
+            document.getElementById('modalDepartureTime').textContent = flight.outbound.departure_time;
+            document.getElementById('modalDepartureAirport').textContent = `${flight.outbound.departure_city} (${flight.outbound.departure_airport})`;
+            document.getElementById('modalArrivalTime').textContent = flight.outbound.arrival_time;
+            document.getElementById('modalArrivalAirport').textContent = `${flight.outbound.arrival_city} (${flight.outbound.arrival_airport})`;
+            document.getElementById('modalDuration').textContent = flight.outbound.duration;
+            document.getElementById('modalAircraft').textContent = flight.outbound.aircraft;
+            document.getElementById('modalPrice').textContent = `$${flight.combined_price}`;
+
+            // Populate return flight details (if available)
+            const returnDetails = document.getElementById('modalReturnDetails');
+            if (flight.return) {
+            returnDetails.style.display = 'block';
+            document.getElementById('modalReturnDepartureTime').textContent = flight.return.departure_time;
+            document.getElementById('modalReturnDepartureAirport').textContent = `${flight.return.departure_city} (${flight.return.departure_airport})`;
+            document.getElementById('modalReturnArrivalTime').textContent = flight.return.arrival_time;
+            document.getElementById('modalReturnArrivalAirport').textContent = `${flight.return.arrival_city} (${flight.return.arrival_airport})`;
+            document.getElementById('modalReturnDuration').textContent = flight.return.duration;
+            document.getElementById('modalReturnAircraft').textContent = flight.return.aircraft;
+            } else {
+            returnDetails.style.display = 'none';
+            }
+
+            // Show the modal
+            modal.style.display = 'block';
+        }
+
+        // Close the modal when the close button is clicked
+        closeBtn.onclick = function() {
+            modal.style.display = 'none';
+        };
+
+        // Close the modal when clicking outside the modal
+        window.onclick = function(event) {
+            if (event.target === modal) {
+            modal.style.display = 'none';
+            }
+        };
+
+        // Add event listeners to all "View details" buttons
+        document.querySelectorAll('.btn-details').forEach(button => {
+            button.addEventListener('click', function() {
+                const flight = JSON.parse(this.getAttribute('data-flight'));
+                openFlightDetails(flight);
+            });
+        });
+        // Function to toggle the return date field
+        function toggleReturnDate() {
+            const tripType = document.getElementById('trip_type').value;
+            const returnDateGroup = document.getElementById('returnDateGroup');
+
+            if (tripType === 'One-way') {
+            returnDateGroup.style.display = 'none'; // Hide return date field
+            } else {
+            returnDateGroup.style.display = 'block'; // Show return date field
+            }
+        }
+
+        // Add event listener to trip type dropdown
+        document.getElementById('trip_type').addEventListener('change', toggleReturnDate);
+
+        // Initialize the layout based on the default trip type
+        toggleReturnDate();
     </script>
 </body>
 </html>

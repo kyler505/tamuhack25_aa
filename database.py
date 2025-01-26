@@ -1,68 +1,63 @@
 # database.py
 import sqlite3
-import json
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
 
-# database file name
+# Database file name
 DATABASE = 'users.db'
 
 def init_db():
-    """Initialize the database and create the users table if it doesn't exist."""
+    """Initialize the database and create the users and bookings tables if they don't exist."""
     with sqlite3.connect(DATABASE) as conn:
         cursor = conn.cursor()
-
-        # create users info table
+        
+        # Create the users table
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE NOT NULL,
-                password_hash TEXT NOT NULL
-                # new column for past user flight data, to be used for recommendations: price, time depature, distance
-                past_flights TEXT
+                password_hash TEXT NOT NULL,
+                email TEXT,  -- Add the email column
+                join_date TEXT  -- Add the join_date column
             )
         ''')
-
-        # create airline info table
+        
+        # Create the bookings table
         cursor.execute('''
-            CREATE TABLE IF NOT EXISTS airline_data (
+            CREATE TABLE IF NOT EXISTS bookings (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                flight_time REAL NOT NULL,
-                price REAL NOT NULL,
-                distance REAL NOT NULL
+                username TEXT NOT NULL,
+                departure_city TEXT NOT NULL,
+                departure_airport TEXT NOT NULL,
+                destination_city TEXT NOT NULL,
+                destination_airport TEXT NOT NULL,
+                departure_date TEXT NOT NULL,
+                return_date TEXT,
+                passengers INTEGER NOT NULL,
+                total_price REAL NOT NULL,
+                FOREIGN KEY (username) REFERENCES users(username)
             )
         ''')
-
+        
         conn.commit()
 
-# user functions
-def add_user(username, password, past_flights=None):
-    """Add a new user to the database with optional past flight data."""
+def add_user(username, password):
+    """Add a new user to the database."""
     password_hash = generate_password_hash(password)
-    past_flights_json = json.dumps(past_flights) if past_flights else "[]"  # Serialize to JSON
+    join_date = datetime.now().strftime('%Y-%m-%d')
     try:
         with sqlite3.connect(DATABASE) as conn:
             cursor = conn.cursor()
             cursor.execute('''
-                INSERT INTO users (username, password_hash, past_flights)
+                INSERT INTO users (username, password_hash, join_date)
                 VALUES (?, ?, ?)
-            ''', (username, password_hash, past_flights_json))
+            ''', (username, password_hash, join_date))
             conn.commit()
         return True
     except sqlite3.IntegrityError:
         # Username already exists
         return False
 
-def update_user_past_flights(username, past_flights):
-    """Update a user's past flight data."""
-    past_flights_json = json.dumps(past_flights)  # Serialize to JSON
-    with sqlite3.connect(DATABASE) as conn:
-        cursor = conn.cursor()
-        cursor.execute('''
-            UPDATE users SET past_flights = ? WHERE username = ?
-        ''', (past_flights_json, username))
-        conn.commit()
-        return True
-        
 def verify_user(username, password):
     """Verify if the username and password match a user in the database."""
     with sqlite3.connect(DATABASE) as conn:
@@ -84,30 +79,42 @@ def user_exists(username):
         ''', (username,))
         return cursor.fetchone() is not None
     
-def get_user_past_flights(username):
-    """Retrieve a user's past flight data."""
+def get_user_details(username):
+    """Fetch user details from the database."""
+    with sqlite3.connect(DATABASE) as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT username, email, join_date FROM users WHERE username = ?', (username,))
+        user = cursor.fetchone()
+        if user:
+            return {
+                'username': user[0],
+                'email': user[1],
+                'join_date': user[2]
+            }
+        return None
+
+def get_user_bookings(username):
+    """Fetch booking history for a user."""
     with sqlite3.connect(DATABASE) as conn:
         cursor = conn.cursor()
         cursor.execute('''
-            SELECT past_flights FROM users WHERE username = ?
+            SELECT id, departure_city, departure_airport, destination_city, destination_airport,
+                   departure_date, return_date, passengers, total_price
+            FROM bookings
+            WHERE username = ?
         ''', (username,))
-        result = cursor.fetchone()
-        if result and result[0]:
-            return json.loads(result[0])  # Deserialize JSON
-        return []
-
-# functions to add more data to the db
-def add_aa_flight(flight_time, price, distance):
-    """Add a flight to the database."""
-    try:
-        with sqlite3.connect(DATABASE) as conn:
-            cursor = conn.cursor()
-            cursor.execute('''
-                INSERT INTO flights (flight_time, price, distance)
-                VALUES (?, ?, ?)
-            ''', (flight_time, price, distance))
-            conn.commit()
-        return True
-    except sqlite3.IntegrityError:
-        # handle duplicate flights or other integrity errors
-        return False
+        bookings = cursor.fetchall()
+        return [
+            {
+                'id': booking[0],
+                'departure_city': booking[1],
+                'departure_airport': booking[2],
+                'destination_city': booking[3],
+                'destination_airport': booking[4],
+                'departure_date': booking[5],
+                'return_date': booking[6],
+                'passengers': booking[7],
+                'total_price': booking[8]
+            }
+            for booking in bookings
+        ]
