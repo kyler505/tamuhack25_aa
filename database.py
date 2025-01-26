@@ -84,21 +84,6 @@ def get_user_details(username):
                 'username': user[0]
             }
         return None
-    
-def add_aa_flight(flight_time, price, distance):
-    """Add a flight to the airline_data table."""
-    try:
-        with sqlite3.connect(DATABASE) as conn:
-            cursor = conn.cursor()
-            cursor.execute('''
-                INSERT INTO airline_data (flight_time, price, distance)
-                VALUES (?, ?, ?)
-            ''', (flight_time, price, distance))
-            conn.commit()
-        return True
-    except sqlite3.IntegrityError:
-        # Handle duplicate flights or other integrity errors
-        return False
 
 # clears the airline table
 def clear_airline_data():
