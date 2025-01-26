@@ -1,3 +1,4 @@
+<!-- templates/flight_search.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -42,6 +43,14 @@
             justify-content: center; /* Align to the center */
             gap: 100px; /* Space between the options */
         }
+        .continue-section {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
     </style>
 </head>
 <body>
@@ -55,7 +64,7 @@
 
         <!-- Compact flight search form -->
         <div class="compact-form">
-            <form action="/search" method="POST">
+            <form action="/search" method="POST" id="searchForm">
                 <div class="form-group">
                     <label class="form-label">Trip Type</label>
                     <div class="trip-type-options">
@@ -108,6 +117,30 @@
                 <button type="submit" class="btn btn-primary">Search</button>
             </form>
         </div>
+
+        <!-- Continue where you left off -->
+        {% if last_search %}
+        <div class="continue-section">
+            <h4>Continue where you left off</h4>
+            <p>
+                {{ last_search.departure }} to {{ last_search.destination }}<br>
+                {{ last_search.departure_date }} - {{ last_search.return_date }}, 
+                {{ last_search.passengers }} traveler(s), 
+                {{ last_search.trip_type }}
+            </p>
+            <!-- Hidden form for continuing the search -->
+            <form action="/search" method="POST" id="continueSearchForm" style="display: none;">
+                <input type="hidden" name="trip_type" value="{{ last_search.trip_type }}">
+                <input type="hidden" name="departure" value="{{ last_search.departure }}">
+                <input type="hidden" name="destination" value="{{ last_search.destination }}">
+                <input type="hidden" name="departure_date" value="{{ last_search.departure_date }}">
+                <input type="hidden" name="return_date" value="{{ last_search.return_date }}">
+                <input type="hidden" name="passengers" value="{{ last_search.passengers }}">
+            </form>
+            <!-- Button to submit the hidden form -->
+            <button class="btn btn-secondary" onclick="document.getElementById('continueSearchForm').submit()">Continue Search</button>
+        </div>
+        {% endif %}
     </div>
 
     <!-- jQuery and jQuery UI -->

@@ -1,9 +1,14 @@
 from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, flash
+import database  # Import the database module
 import requests  # For making HTTP requests to the Flight-Engine API
 from datetime import datetime  # For parsing and formatting dates
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Required for session management
+
+# Initialize the database
+database.init_db()
 
 # Flight-Engine API base URL
 FLIGHT_ENGINE_API_URL = 'http://localhost:4000'  # Update if the API is hosted elsewhere
@@ -18,24 +23,55 @@ def home():
 def login():
     if request.method == 'POST':
         username = request.form['username']
-        session['username'] = username
-        return redirect(url_for('flight_search'))
+        password = request.form['password']
+
+        # Verify the username and password
+        if database.verify_user(username, password):
+            session['username'] = username  # Store the username in the session
+            return redirect(url_for('flight_search'))  # Redirect to flight search on successful login
+        else:
+            flash('Invalid username or password', 'error')  # Show error message
+            return render_template('login.html', username=username)  # Retain the username in the form
     return render_template('login.html')
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        if database.user_exists(username):
+            flash('Username already exists', 'error')
+        else:
+            if database.add_user(username, password):
+                flash('Registration successful! Please log in.', 'success')
+                return redirect(url_for('login'))
+            else:
+                flash('Registration failed', 'error')
+    return render_template('register.html')
 
 @app.route('/logout')
 def logout():
-    session.pop('username', None)
-    return redirect(url_for('login'))
+    session.pop('username', None)  # Remove the username from the session
+    return redirect(url_for('login'))  # Redirect to login page without a success message
 
 @app.route('/flight_search')
 def flight_search():
+    # Check if the user is logged in
     if 'username' not in session:
+        flash('You need to log in to access this page.', 'error')
         return redirect(url_for('login'))
-    return render_template('flight_search.html')
+
+    # Retrieve the user's last search from the session
+    last_search = session.get('last_search', None)
+    return render_template('flight_search.html', last_search=last_search)
+
 
 @app.route('/search', methods=['POST'])
 def search():
+    # Check if the user is logged in
     if 'username' not in session:
+        flash('You need to log in to access this page.', 'error')
         return redirect(url_for('login'))
 
     # Get form data from the search query
@@ -45,6 +81,16 @@ def search():
     departure_date = request.form.get('departure_date', '')
     return_date = request.form.get('return_date', '')  # Optional for one-way trips
     passengers = request.form.get('passengers', '1')  # Default to 1 Adult
+
+    # Store the search details in the session
+    session['last_search'] = {
+        'trip_type': trip_type,
+        'departure': departure,
+        'destination': destination,
+        'departure_date': departure_date,
+        'return_date': return_date,
+        'passengers': passengers
+    }
 
     # Validate required fields
     if not departure or not destination or not departure_date:

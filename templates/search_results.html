@@ -124,6 +124,28 @@
             font-size: 0.9rem;
             color: #666;
         }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .pagination .page-item {
+            margin: 0 5px;
+        }
+        .pagination .page-item .page-link {
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            color: #007bff;
+        }
+        .pagination .page-item.active .page-link {
+            background-color: #007bff;
+            border-color: #007bff;
+            color: #fff;
+        }
+        .back-to-search {
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
@@ -133,6 +155,11 @@
         <div class="text-end mb-3">
             <span>Welcome, {{ session.username }}!</span>
             <a href="{{ url_for('logout') }}" class="btn btn-danger ms-2">Logout</a>
+        </div>
+
+        <!-- Back to Search Button -->
+        <div class="back-to-search">
+            <a href="{{ url_for('flight_search') }}" class="btn btn-secondary">Back to Search</a>
         </div>
 
         <!-- Minimal Search Bar -->
@@ -183,20 +210,6 @@
             </form>
         </div>
 
-        <!-- Search Summary -->
-        <div class="filters">
-            <h4>Search Summary</h4>
-            <p>Get an overview of your flight options</p>
-            <button class="btn btn-secondary" onclick="toggleSummary()">View summary</button>
-            <div id="summaryDetails" style="display: none; margin-top: 15px;">
-                <p><strong>Departure:</strong> {{ departure }}</p>
-                <p><strong>Destination:</strong> {{ destination }}</p>
-                <p><strong>Departure Date:</strong> {{ departure_date }}</p>
-                <p><strong>Return Date:</strong> {{ return_date }}</p>
-                <p><strong>Passengers:</strong> {{ passengers }}</p>
-            </div>
-        </div>
-
         <!-- Filters -->
         <div class="filters">
             <h4>Filters</h4>
@@ -206,16 +219,12 @@
                 <p><a href="#" onclick="filterStops('any')">Any {{ results|length }}</a></p>
                 <p><a href="#" onclick="filterStops('direct')">Direct only 78</a></p>
             </div>
-            <div class="best-filter">
-                <h6>Best</h6>
-                <p>We look at the price, travel time, number of stops, and baggage allowance to determine which options you might like best.</p>
-            </div>
         </div>
 
         <!-- Flight Results -->
         <div class="flight-results">
             {% for flight in results %}
-            <div class="flight-card">
+            <div class="flight-card" data-page="{{ loop.index0 // 16 + 1 }}">
                 <h5>Outbound Flight</h5>
                 <div class="flight-info">
                     <div>
@@ -264,6 +273,17 @@
             </div>
             {% endfor %}
         </div>
+
+        <!-- Pagination -->
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                {% for page_num in range(1, (results|length // 16) + 2) %}
+                <li class="page-item {% if page_num == 1 %}active{% endif %}">
+                    <a class="page-link" href="#" onclick="showPage({{ page_num }})">{{ page_num }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        </nav>
     </div>
 
     <!-- jQuery and jQuery UI -->
@@ -331,21 +351,33 @@
             minDate: "today"
         });
 
-        // Function to toggle search summary visibility
-        function toggleSummary() {
-            const summaryDetails = document.getElementById("summaryDetails");
-            if (summaryDetails.style.display === "none") {
-                summaryDetails.style.display = "block";
-            } else {
-                summaryDetails.style.display = "none";
-            }
-        }
-
         // Function to filter flights by stops
         function filterStops(type) {
             alert(`Filtering by ${type} stops`);
             // Add logic to filter flights based on stops
         }
+
+        // Function to show a specific page of flight results
+        function showPage(pageNum) {
+            // Hide all flight cards
+            document.querySelectorAll('.flight-card').forEach(card => {
+                card.style.display = 'none';
+            });
+
+            // Show flight cards for the selected page
+            document.querySelectorAll(`.flight-card[data-page="${pageNum}"]`).forEach(card => {
+                card.style.display = 'block';
+            });
+
+            // Update active state of pagination links
+            document.querySelectorAll('.pagination .page-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`.pagination .page-item:nth-child(${pageNum})`).classList.add('active');
+        }
+
+        // Initialize the first page as active
+        showPage(1);
     </script>
 </body>
 </html>
