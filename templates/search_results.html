@@ -420,7 +420,7 @@
                     </div>
                     <div class="divider"></div>
                     <div class="price-section">
-                    <div class="price">${{ flight.combined_price }}</div>
+                    <div class="price">${{ "%.2f"|format(flight.combined_price) }}</div>
                     <button class="btn btn-primary btn-details" data-flight='{{ flight|tojson }}'>View details</button>
                     </div>
                 </div>
