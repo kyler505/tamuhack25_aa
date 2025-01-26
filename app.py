@@ -66,7 +66,6 @@ def flight_search():
     last_search = session.get('last_search', None)
     return render_template('flight_search.html', last_search=last_search)
 
-
 @app.route('/search', methods=['POST'])
 def search():
     # Check if the user is logged in

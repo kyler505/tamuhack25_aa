@@ -123,22 +123,11 @@
         <div class="continue-section">
             <h4>Continue where you left off</h4>
             <p>
-                {{ last_search.departure }} to {{ last_search.destination }}<br>
-                {{ last_search.departure_date }} - {{ last_search.return_date }}, 
-                {{ last_search.passengers }} traveler(s), 
-                {{ last_search.trip_type }}
+                {{ last_search.departure }} to {{ last_search.destination }} |
+                {{ last_search.departure_date }} - {{ last_search.return_date }} |
+                {{ last_search.passengers }} traveler(s) | {{ last_search.trip_type }}
             </p>
-            <!-- Hidden form for continuing the search -->
-            <form action="/search" method="POST" id="continueSearchForm" style="display: none;">
-                <input type="hidden" name="trip_type" value="{{ last_search.trip_type }}">
-                <input type="hidden" name="departure" value="{{ last_search.departure }}">
-                <input type="hidden" name="destination" value="{{ last_search.destination }}">
-                <input type="hidden" name="departure_date" value="{{ last_search.departure_date }}">
-                <input type="hidden" name="return_date" value="{{ last_search.return_date }}">
-                <input type="hidden" name="passengers" value="{{ last_search.passengers }}">
-            </form>
-            <!-- Button to submit the hidden form -->
-            <button class="btn btn-secondary" onclick="document.getElementById('continueSearchForm').submit()">Continue Search</button>
+            <button class="btn btn-secondary" onclick="fillFormWithLastSearch()">Continue Search</button>
         </div>
         {% endif %}
     </div>
@@ -227,6 +216,30 @@
 
         // Initialize the layout based on the default trip type
         updateDateInputs();
+
+        // Function to pre-fill the form with the last search details
+        function fillFormWithLastSearch() {
+            const lastSearch = {{ last_search | tojson | safe }};
+
+            // Set trip type
+            document.querySelector(`input[name="trip_type"][value="${lastSearch.trip_type}"]`).checked = true;
+
+            // Set departure and destination
+            document.getElementById("departure").value = lastSearch.departure;
+            document.getElementById("destination").value = lastSearch.destination;
+
+            // Set dates
+            departureDatePicker.setDate(lastSearch.departure_date);
+            if (lastSearch.return_date) {
+                returnDatePicker.setDate(lastSearch.return_date);
+            }
+
+            // Set passengers
+            document.getElementById("passengers").value = lastSearch.passengers;
+
+            // Update the form layout
+            updateDateInputs();
+        }
     </script>
 </body>
 </html>
