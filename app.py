@@ -51,12 +51,22 @@ def search():
         return render_template('search_results.html', results=[], error="Please fill in all required fields.")
 
     try:
-        # Fetch flight data from the Flight-Engine API using the departure date, origin, and destination
-        response = requests.get(
+        # Fetch outbound flights
+        outbound_response = requests.get(
             f'{FLIGHT_ENGINE_API_URL}/flights?date={departure_date}&origin={departure}&destination={destination}'
         )
-        response.raise_for_status()  # Raise an error for bad responses (4xx, 5xx)
-        flights = response.json()
+        outbound_response.raise_for_status()  # Raise an error for bad responses (4xx, 5xx)
+        outbound_flights = outbound_response.json()
+
+        # Fetch return flights for round-trip
+        return_flights = []
+        if trip_type == 'Round-trip' and return_date:
+            return_response = requests.get(
+                f'{FLIGHT_ENGINE_API_URL}/flights?date={return_date}&origin={destination}&destination={departure}'
+            )
+            return_response.raise_for_status()
+            return_flights = return_response.json()
+
     except requests.exceptions.RequestException as e:
         # Handle API errors gracefully
         print(f"Error fetching flights: {e}")
@@ -64,26 +74,60 @@ def search():
 
     # Map flight data to the structure expected by the template
     filtered_flights = []
-    for flight in flights:
-        departure_time = datetime.strptime(flight.get("departureTime"), "%Y-%m-%dT%H:%M:%S.%f%z")
-        arrival_time = datetime.strptime(flight.get("arrivalTime"), "%Y-%m-%dT%H:%M:%S.%f%z")
+    for outbound_flight in outbound_flights:
+        # Format outbound flight data
+        outbound_departure_time = datetime.strptime(outbound_flight.get("departureTime"), "%Y-%m-%dT%H:%M:%S.%f%z")
+        outbound_arrival_time = datetime.strptime(outbound_flight.get("arrivalTime"), "%Y-%m-%dT%H:%M:%S.%f%z")
 
-        filtered_flights.append({
+        outbound_data = {
             "airline": "Unknown Airline",  # Replace with actual airline data if available
-            "departure_time": departure_time.strftime("%I:%M %p"),  # Format as "02:36 AM"
-            "departure_date": departure_time.strftime("%b %d, %Y"),  # Format as "Jan 26, 2025"
-            "departure_airport": flight.get("origin", {}).get("code", "N/A"),
-            "departure_city": flight.get("origin", {}).get("city", "N/A"),
-            "arrival_time": arrival_time.strftime("%I:%M %p"),  # Format as "05:11 AM"
-            "arrival_date": arrival_time.strftime("%b %d, %Y"),  # Format as "Jan 26, 2025"
-            "arrival_airport": flight.get("destination", {}).get("code", "N/A"),
-            "arrival_city": flight.get("destination", {}).get("city", "N/A"),
-            "duration": flight.get("duration", {}).get("locale", "N/A"),
+            "departure_time": outbound_departure_time.strftime("%I:%M %p"),  # Format as "02:36 AM"
+            "departure_date": outbound_departure_time.strftime("%b %d, %Y"),  # Format as "Jan 26, 2025"
+            "departure_airport": outbound_flight.get("origin", {}).get("code", "N/A"),
+            "departure_city": outbound_flight.get("origin", {}).get("city", "N/A"),
+            "arrival_time": outbound_arrival_time.strftime("%I:%M %p"),  # Format as "05:11 AM"
+            "arrival_date": outbound_arrival_time.strftime("%b %d, %Y"),  # Format as "Jan 26, 2025"
+            "arrival_airport": outbound_flight.get("destination", {}).get("code", "N/A"),
+            "arrival_city": outbound_flight.get("destination", {}).get("city", "N/A"),
+            "duration": outbound_flight.get("duration", {}).get("locale", "N/A"),
             "price": "N/A"  # Replace with actual price data if available
-        })
+        }
 
-    # Render the search results template with the filtered flights
-    return render_template('search_results.html', results=filtered_flights)
+        # For round-trip, pair outbound flight with a return flight
+        if trip_type == 'Round-trip' and return_flights:
+            for return_flight in return_flights:
+                # Format return flight data
+                return_departure_time = datetime.strptime(return_flight.get("departureTime"), "%Y-%m-%dT%H:%M:%S.%f%z")
+                return_arrival_time = datetime.strptime(return_flight.get("arrivalTime"), "%Y-%m-%dT%H:%M:%S.%f%z")
+
+                return_data = {
+                    "airline": "Unknown Airline",  # Replace with actual airline data if available
+                    "departure_time": return_departure_time.strftime("%I:%M %p"),  # Format as "02:36 AM"
+                    "departure_date": return_departure_time.strftime("%b %d, %Y"),  # Format as "Jan 26, 2025"
+                    "departure_airport": return_flight.get("origin", {}).get("code", "N/A"),
+                    "departure_city": return_flight.get("origin", {}).get("city", "N/A"),
+                    "arrival_time": return_arrival_time.strftime("%I:%M %p"),  # Format as "05:11 AM"
+                    "arrival_date": return_arrival_time.strftime("%b %d, %Y"),  # Format as "Jan 26, 2025"
+                    "arrival_airport": return_flight.get("destination", {}).get("code", "N/A"),
+                    "arrival_city": return_flight.get("destination", {}).get("city", "N/A"),
+                    "duration": return_flight.get("duration", {}).get("locale", "N/A"),
+                    "price": "N/A"  # Replace with actual price data if available
+                }
+
+                # Pair outbound and return flights
+                filtered_flights.append({
+                    "outbound": outbound_data,
+                    "return": return_data
+                })
+        else:
+            # For one-way trips, only include outbound flights
+            filtered_flights.append({
+                "outbound": outbound_data,
+                "return": None  # No return flight for one-way trips
+            })
+
+    # Render the search results template with the filtered flights and search parameters
+    return render_template('search_results.html', results=filtered_flights, trip_type=trip_type, departure=departure, destination=destination, departure_date=departure_date, return_date=return_date, passengers=passengers)
 
 if __name__ == '__main__':
     app.run(debug=True)
