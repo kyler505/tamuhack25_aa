@@ -22,6 +22,10 @@ const calcDistance = (a: Location, b: Location): number => Math.round(metersToMi
 
 export class Generator {
   random: (min: number, max: number) => number;
+  random_new(min: number, max: number): number {
+    return parseFloat((Math.random() * (max - min) + min).toFixed(2));
+  }
+
 
   constructor(seed: string) {
     // Generate the random method with the given seed
@@ -51,8 +55,8 @@ export class Generator {
     // the margin of error for the price should 169.36
     const margin_of_error = 169.36;
     // given an average of 474.83, the price should be between 305.47 and 644.19, strictly 2 decimal places
-    const price = parseFloat((474.83 + this.random(-margin_of_error, margin_of_error)).toFixed(2))
-    
+    // use the random_new method to generate a random price from 305.47 to 644.19
+    const price = parseFloat((this.random_new(305.47, 644.19)).toFixed(2));    
 
     // Assign random aircraft
     const randAircraft = aircraft[this.random(0, aircraft.length - 1)];
