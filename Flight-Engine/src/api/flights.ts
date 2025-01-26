@@ -13,7 +13,7 @@ flights.get('/', (req, res) => {
     return;
   }
 
-  const { date, flightNumber, origin, destination } = query;
+  const { date, flightNumber, origin, destination, price } = query;
   const isoDate = DateTime.fromISO(date, { zone: 'utc' });
 
   if (!isoDate.isValid) {
@@ -36,6 +36,10 @@ flights.get('/', (req, res) => {
   // Filter results based on flight number
   if (flightNumber) {
     generatedFlights = generatedFlights.filter((flight) => flight.flightNumber === flightNumber);
+  }
+
+  if (price) {
+    generatedFlights = generatedFlights.filter((flight) => flight.price === price);
   }
 
   // Respond with matching flights
