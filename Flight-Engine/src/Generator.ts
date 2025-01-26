@@ -51,7 +51,7 @@ export class Generator {
     // the margin of error for the price should 169.36
     const margin_of_error = 169.36;
     // given an average of 474.83, the price should be between 305.47 and 644.19, strictly 2 decimal places
-    const price = (474.83 + this.random(-margin_of_error, margin_of_error)) * 100 / 100;
+    const price = parseFloat((474.83 + this.random(-margin_of_error, margin_of_error)).toFixed(2))
     
 
     // Assign random aircraft
