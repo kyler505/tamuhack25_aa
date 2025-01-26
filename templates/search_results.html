@@ -243,6 +243,20 @@
             border-radius: 4px;
             width: 100%;
         }
+        .sort-by {
+            margin-bottom: 20px;
+        }
+
+        .sort-by label {
+            margin-right: 10px;
+        }
+
+        .sort-by select {
+            padding: 8px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -333,99 +347,103 @@
         <div class="filters">
             <h4>Filters</h4>
             <p>Showing {{ results|length }} results</p>
-          
+
+            <!-- Existing Price and Stops Filters -->
             <div class="filter-row">
-              <!-- Price Filter -->
-              <div class="price-filter">
-                <h6>Price</h6>
-                <div class="price-inputs">
-                  <input type="number" id="minPrice" placeholder="Min price" min="0">
-                  <input type="number" id="maxPrice" placeholder="Max price" min="0">
-                  <button class="btn btn-secondary" onclick="filterByPrice()">Apply</button>
+                <!-- Price Filter -->
+                <div class="price-filter">
+                    <h6>Price</h6>
+                    <div class="price-inputs">
+                        <input type="number" id="minPrice" placeholder="Min price" min="0">
+                        <input type="number" id="maxPrice" placeholder="Max price" min="0">
+                        <button class="btn btn-secondary" onclick="filterByPrice()">Apply</button>
+                    </div>
                 </div>
-              </div>
-          
-              <!-- Stops Filter -->
-              <div class="stops-filter">
-                <h6>Stops</h6>
-                <p><a href="#" onclick="filterStops('any')">Any: {{ results|length }}</a></p>
-                <p><a href="#" onclick="filterStops('direct')">Direct Only: 78</a></p>
-              </div>
+
+                <!-- Stops Filter -->
+                <div class="stops-filter">
+                    <h6>Stops</h6>
+                    <p><a href="#" onclick="filterStops('any')">Any {{ results|length }}</a></p>
+                    <p><a href="#" onclick="filterStops('direct')">Direct only 78</a></p>
+                </div>
+
+                <!-- Sorting Form -->
+                <form action="{{ url_for('search') }}" method="POST" id="sortForm">
+                    <input type="hidden" name="trip_type" value="{{ trip_type }}">
+                    <input type="hidden" name="departure" value="{{ departure }}">
+                    <input type="hidden" name="destination" value="{{ destination }}">
+                    <input type="hidden" name="departure_date" value="{{ departure_date }}">
+                    <input type="hidden" name="return_date" value="{{ return_date }}">
+                    <input type="hidden" name="passengers" value="{{ passengers }}">
+                    
+                    <div class="sort-by">
+                        <label for="sort_by">Sort by:</label>
+                        <select id="sort_by" name="sort_by" onchange="document.getElementById('sortForm').submit()">
+                            <option value="cheapest" {% if sort_by == 'cheapest' %}selected{% endif %}>Cheapest</option>
+                            <option value="fastest" {% if sort_by == 'fastest' %}selected{% endif %}>Fastest</option>
+                        </select>
+                    </div>
+                </form>
             </div>
-          
-            <!-- Hidden form for price range -->
-            <form action="/search" method="POST" id="priceFilterForm">
-              <input type="hidden" name="trip_type" value="{{ trip_type }}">
-              <input type="hidden" name="departure" value="{{ departure }}">
-              <input type="hidden" name="destination" value="{{ destination }}">
-              <input type="hidden" name="departure_date" value="{{ departure_date }}">
-              <input type="hidden" name="return_date" value="{{ return_date }}">
-              <input type="hidden" name="passengers" value="{{ passengers }}">
-              <input type="hidden" id="minPriceInput" name="min_price">
-              <input type="hidden" id="maxPriceInput" name="max_price">
-            </form>
         </div>
 
         <!-- Flight Results -->
-        <div class="flight-results">
-            {% for flight in results %}
-            <div class="flight-card" data-page="{{ loop.index0 // 16 + 1 }}">
+        {% for flight in results %}
+            <div class="flight-card" data-page="{{ loop.index0 // 16 + 1 }}" data-price="{{ flight.combined_price }}" data-duration="{{ flight.outbound.duration }}">
                 <div class="flight-info">
                     <div class="flight-details">
-                    <h5>Outbound Flight</h5>
-                    <div class="flight-info-row">
-                        <div>
-                        <div class="time">{{ flight.outbound.departure_time }}</div>
-                        <div class="date-airport">
-                            <span class="date">{{ flight.outbound.departure_date }}</span>
-                            <span class="airport">({{ flight.outbound.departure_airport }})</span>
+                        <h5>Outbound Flight</h5>
+                        <div class="flight-info-row">
+                            <div>
+                                <div class="time">{{ flight.outbound.departure_time }}</div>
+                                <div class="date-airport">
+                                    <span class="date">{{ flight.outbound.departure_date }}</span>
+                                    <span class="airport">({{ flight.outbound.departure_airport }})</span>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <div class="duration">{{ flight.outbound.duration }}</div>
+                                <div class="arrow">→</div>
+                            </div>
+                            <div>
+                                <div class="time">{{ flight.outbound.arrival_time }}</div>
+                                <div class="date-airport">
+                                    <span class="date">{{ flight.outbound.arrival_date }}</span>
+                                    <span class="airport">({{ flight.outbound.arrival_airport }})</span>
+                                </div>
+                            </div>
                         </div>
-                        </div>
-                        <div class="text-center">
-                        <div class="duration">{{ flight.outbound.duration }}</div>
-                        <div class="arrow">→</div>
-                        </div>
-                        <div>
-                        <div class="time">{{ flight.outbound.arrival_time }}</div>
-                        <div class="date-airport">
-                            <span class="date">{{ flight.outbound.arrival_date }}</span>
-                            <span class="airport">({{ flight.outbound.arrival_airport }})</span>
-                        </div>
-                        </div>
+                        {% if trip_type == 'Round-trip' and flight.return %}
+                            <h5 class="mt-4">Return Flight</h5>
+                            <div class="flight-info-row">
+                                <div>
+                                    <div class="time">{{ flight.return.departure_time }}</div>
+                                    <div class="date-airport">
+                                        <span class="date">{{ flight.return.departure_date }}</span>
+                                        <span class="airport">({{ flight.return.departure_airport }})</span>
+                                    </div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="duration">{{ flight.return.duration }}</div>
+                                    <div class="arrow">→</div>
+                                </div>
+                                <div>
+                                    <div class="time">{{ flight.return.arrival_time }}</div>
+                                    <div class="date-airport">
+                                        <span class="date">{{ flight.return.arrival_date }}</span>
+                                        <span class="airport">({{ flight.return.arrival_airport }})</span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
                     </div>
-
-                    {% if trip_type == 'Round-trip' and flight.return %}
-                    <h5 class="mt-4">Return Flight</h5>
-                    <div class="flight-info-row">
-                        <div>
-                        <div class="time">{{ flight.return.departure_time }}</div>
-                        <div class="date-airport">
-                            <span class="date">{{ flight.return.departure_date }}</span>
-                            <span class="airport">({{ flight.return.departure_airport }})</span>
-                        </div>
-                        </div>
-                        <div class="text-center">
-                        <div class="duration">{{ flight.return.duration }}</div>
-                        <div class="arrow">→</div>
-                        </div>
-                        <div>
-                        <div class="time">{{ flight.return.arrival_time }}</div>
-                        <div class="date-airport">
-                            <span class="date">{{ flight.return.arrival_date }}</span>
-                            <span class="airport">({{ flight.return.arrival_airport }})</span>
-                        </div>
-                        </div>
-                    </div>
-                    {% endif %}
-                    </div>
-                    <div class="divider"></div>
                     <div class="price-section">
-                    <div class="price">${{ "%.2f"|format(flight.combined_price) }}</div>
-                    <button class="btn btn-primary btn-details" data-flight='{{ flight|tojson }}'>View details</button>
+                        <div class="price">${{ "%.2f"|format(flight.combined_price) }}</div>
+                        <button class="btn btn-primary btn-details" data-flight='{{ flight|tojson }}'>View details</button>
                     </div>
                 </div>
             </div>
-        {% endfor %}
+            {% endfor %}
 
         <!-- Modal for flight details -->
         <div id="flightDetailsModal" class="modal">
@@ -654,6 +672,44 @@
 
         // Initialize the layout based on the default trip type
         toggleReturnDate();
+
+        // Function to sort flights based on the selected option
+        function sortFlights() {
+            const sortBy = document.getElementById('sort_by').value;
+            const flightResults = document.querySelector('.flight-results');
+            const flightCards = Array.from(flightResults.querySelectorAll('.flight-card'));
+
+            flightCards.sort((a, b) => {
+                const priceA = parseFloat(a.getAttribute('data-price'));
+                const priceB = parseFloat(b.getAttribute('data-price'));
+
+                const durationA = parseFloat(a.getAttribute('data-duration').replace(' hrs', ''));
+                const durationB = parseFloat(b.getAttribute('data-duration').replace(' hrs', ''));
+
+                if (sortBy === 'cheapest') {
+                    return priceA - priceB; // Sort by price (ascending)
+                } else if (sortBy === 'fastest') {
+                    return durationA - durationB; // Sort by duration (ascending)
+                }
+                return 0;
+            });
+
+            // Clear the current flight results
+            flightResults.innerHTML = '';
+
+            // Append the sorted flight cards
+            flightCards.forEach(card => {
+                flightResults.appendChild(card);
+            });
+        }
+
+        // Add event listener to the sorting dropdown
+        document.getElementById('sort_by').addEventListener('change', sortFlights);
+
+        // Initialize sorting when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            sortFlights(); // Sort by the default option (cheapest)
+        });
     </script>
 </body>
 </html>

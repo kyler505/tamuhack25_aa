@@ -74,44 +74,7 @@ def user_exists(username):
         ''', (username,))
         return cursor.fetchone() is not None
 
-def get_user_past_flights(username):
-    """Fetch a user's past flights from the airline_data table and return JSON data."""
-    with sqlite3.connect(DATABASE) as conn:
-        cursor = conn.cursor()
-        
-        # Fetch the past_flights JSON string for the user
-        cursor.execute('''
-            SELECT past_flights FROM users WHERE username = ?
-        ''', (username,))
-        result = cursor.fetchone()
-        
-        if result and result[0]:
-            try:
-                # Parse the JSON string to get the list of flight IDs
-                past_flights = json.loads(result[0])
-                past_flights_ids = past_flights if past_flights else []
-                
-                # Fetch flight data for the given IDs
-                if past_flights_ids:
-                    cursor.execute(f'''
-                        SELECT flight_time, price, distance FROM airline_data
-                        WHERE id IN ({','.join(['?'] * len(past_flights_ids))})
-                    ''', past_flights_ids)
-                    
-                    # Fetch all rows and convert to a list of dictionaries
-                    flights = cursor.fetchall()
-                    flight_data = [
-                        {"flight_time": flight[0], "price": flight[1], "distance": flight[2]}
-                        for flight in flights
-                    ]
-                    # Convert the list of dictionaries to JSON
-                    return json.dumps(flight_data, indent=4)
-                else:
-                    return json.dumps([])
-            except json.JSONDecodeError:
-                return json.dumps([])
-        # Return an empty JSON array if no past flights are found
-        return json.dumps([])
+
 
 def get_user_data(username):
     """Fetch a user's data from the users table."""
@@ -153,13 +116,13 @@ def clear_airline_data():
         print("Cleared airline_data table.")
 
 # # remove and add new users
-# def delete_all_users():
-#     """Delete all rows from the users table."""
-#     with sqlite3.connect(DATABASE) as conn:
-#         cursor = conn.cursor()
-#         cursor.execute('DELETE FROM users')
-#         conn.commit()
-#         print("All users deleted successfully.")
+def delete_all_users():
+    """Delete all rows from the users table."""
+    with sqlite3.connect(DATABASE) as conn:
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM users')
+        conn.commit()
+        print("All users deleted successfully.")
 
 # def add_past_flights_column():
 #     """Add the past_flights column to the users table."""

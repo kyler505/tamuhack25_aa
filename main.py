@@ -1,13 +1,15 @@
 import json
 import os
 from database import init_db, add_user, clear_airline_data, add_aa_flight
-import random
+
 from training import generate_past_flights, cluster
+from flask import session
 
 def main():
     # initialize the database
     init_db()
     clear_airline_data()
+    # delete_all_users()
     
     # Function to generate past flights based on trends
 
@@ -18,21 +20,21 @@ def main():
             "password": "password123",
             "past_flights": generate_past_flights("early_flight_time")  # Prefers early flight times
         },
-        # {
-        #     "username": "jane_doe",
-        #     "password": "password456",
-        #     "past_flights": generate_past_flights("low_price")  # Prefers low prices
-        # },
-        # {
-        #     "username": "alice_smith",
-        #     "password": "password789",
-        #     "past_flights": generate_past_flights("long_distance")  # Prefers long distances
-        # },
-        # {
-        #     "username": "bob_jones",
-        #     "password": "password101",
-        #     "past_flights": generate_past_flights("random")  # No specific trend
-        # }
+        {
+            "username": "jane_doe",
+            "password": "password456",
+            "past_flights": generate_past_flights("low_price")  # Prefers low prices
+        },
+        {
+            "username": "alice_smith",
+            "password": "password789",
+            "past_flights": generate_past_flights("long_distance")  # Prefers long distances
+        },
+        {
+            "username": "bob_jones",
+            "password": "password101",
+            "past_flights": generate_past_flights("random")  # No specific trend
+        }
     ]
 
     # Get the directory of the current script
@@ -63,7 +65,13 @@ def main():
             past_flights=user["past_flights"]
     )
 
-cluster('john_doe')
+# Iterate through users and check if the username matches the session
+    # for user in users:
+    #     if user["username"] == session.get("username"):
+    #         current_user = user
+    #         break  # Exit the loop once the user is found
+    cluster("john_doe")
+    # cluster(current_user["username"])
 
 if __name__ == "__main__":
     main()
