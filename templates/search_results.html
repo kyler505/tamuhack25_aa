@@ -393,6 +393,7 @@
         </div>
 
         <!-- Flight Results -->
+        <div class="flight-results">
         {% for flight in results %}
             <div class="flight-card" data-page="{{ loop.index0 // 16 + 1 }}" data-price="{{ flight.combined_price }}" data-duration="{{ flight.outbound.duration }}">
                 <div class="flight-info">
@@ -447,6 +448,16 @@
                         <button class="btn btn-primary btn-details" data-flight='{{ flight|tojson }}'>View details</button>
                     </div>
                 </div>
+                {% endfor %}
+            </div>
+    
+            <!-- Pagination Controls -->
+            <div class="pagination">
+                {% for page_num in range(1, (results|length // 16) + 2) %}
+                    <div class="page-item {% if page_num == 1 %}active{% endif %}">
+                        <a class="page-link" href="#" onclick="showPage({{ page_num }})">{{ page_num }}</a>
+                    </div>
+                {% endfor %}
             </div>
             {% endfor %}
 
@@ -477,16 +488,6 @@
             </div>
           </div>
 
-        <!-- Pagination -->
-        <nav aria-label="Page navigation">
-            <ul class="pagination">
-                {% for page_num in range(1, (results|length // 16) + 2) %}
-                <li class="page-item {% if page_num == 1 %}active{% endif %}">
-                    <a class="page-link" href="#" onclick="showPage({ page_num })">{{ page_num }}</a>
-                </li>
-                {% endfor %}
-            </ul>
-        </nav>
     </div>
 
     <!-- jQuery and jQuery UI -->
@@ -716,6 +717,83 @@
             sortFlights(); // Sort by the default option (cheapest)
         });
 
+        function parse_duration(duration_str) {
+            if (!duration_str) return 0.0;
+
+            let hours = 0.0;
+            let minutes = 0.0;
+
+            if (duration_str.includes('h')) {
+                hours = parseFloat(duration_str.split('h')[0]);
+            }
+            if (duration_str.includes('m')) {
+                minutes = parseFloat(duration_str.split('m')[0].split('h')[-1]);
+            }
+
+            return hours + (minutes / 60);
+        }
+
+        function calculateEuclideanDistance(flight, centroid) {
+            const flightFeatures = [
+                parse_duration(flight.outbound.duration),
+                flight.combined_price
+            ];
+            
+            const distance = Math.sqrt(
+                Math.pow(flightFeatures[0] - centroid[0], 2) +
+                Math.pow(flightFeatures[1] - centroid[1], 2)
+            );
+            
+            return distance;
+        }
+
+        function sortFlightsByCentroids(centroids) {
+            const flightResults = document.querySelector('.search-results');
+            const flightCards = Array.from(document.querySelectorAll('.flight-card'));
+
+            // Calculate distances and store them in the flight cards
+            flightCards.forEach(card => {
+                const flight = JSON.parse(card.querySelector('.btn-details').getAttribute('data-flight'));
+                
+                // Calculate the minimum distance to any centroid
+                let minDistance = Infinity;
+                centroids.forEach(centroid => {
+                    const distance = calculateEuclideanDistance(flight, centroid);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                    }
+                });
+                
+                // Store the minimum distance as a data attribute
+                card.setAttribute('data-distance', minDistance);
+            });
+
+            // Sort the flight cards by distance
+            flightCards.sort((a, b) => {
+                const distanceA = parseFloat(a.getAttribute('data-distance'));
+                const distanceB = parseFloat(b.getAttribute('data-distance'));
+                return distanceA - distanceB;
+            });
+
+            // Create a new container for the sorted flight cards
+            const sortedContainer = document.createElement('div');
+            sortedContainer.classList.add('flight-results'); // Add a class for styling if needed
+
+            // Append the sorted flight cards to the new container
+            flightCards.forEach(card => {
+                sortedContainer.appendChild(card);
+            });
+
+            // Replace the old flight cards with the sorted ones
+            const oldFlightResults = document.querySelector('.flight-results');
+            if (oldFlightResults) {
+                oldFlightResults.replaceWith(sortedContainer);
+            } else {
+                // If no existing flight results container, append the sorted container
+                flightResults.appendChild(sortedContainer);
+            }
+        }
+
         function pullData() {
             fetch('/pull_data', {
                 method: 'POST',
@@ -725,13 +803,17 @@
             })
             .then(response => response.json())
             .then(data => {
-                console.log('Success:', data);
-                alert(data.message);  // Show a success message
+                if (data.status === "success") {
+                    const centroids = data.centroids;
+                    sortFlightsByCentroids(centroids);
+                } else {
+                    alert('Failed to pull data: ' + data.message);
+                }
             })
-            /* .catch((error) => {
+            .catch((error) => {
                 console.error('Error:', error);
-                alert('Failed to pull data');  // Show an error message
-            }); */
+                alert('Failed to pull data');
+            });
         }
     </script>
 </body>
