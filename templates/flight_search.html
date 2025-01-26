@@ -1,0 +1,240 @@
+<!-- templates/flight_search.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Search</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <!-- jQuery UI CSS -->
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <style>
+        .compact-form {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+        .form-control {
+            padding: 8px;
+            font-size: 14px;
+        }
+        .btn-primary {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+        }
+        .date-inputs {
+            display: flex;
+            gap: 10px; /* Space between departure and return date inputs */
+        }
+        .date-inputs .form-group {
+            flex: 1; /* Make both inputs take equal width */
+        }
+        .trip-type-options {
+            display: flex;
+            justify-content: center; /* Align to the center */
+            gap: 100px; /* Space between the options */
+        }
+        .continue-section {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="text-center mb-3">Flight Search</h1>
+        <!-- Display logged-in user and logout button -->
+        <div class="text-end mb-3">
+            <span>Welcome, {{ session.username }}!</span>
+            <div class="d-flex justify-content-end">
+                <a href="{{ url_for('my_account') }}" class="btn btn-secondary btn-sm me-2">My Account</a>
+                <a href="{{ url_for('logout') }}" class="btn btn-danger btn-sm">Logout</a>
+            </div>
+        </div>
+        </div>
+
+        <!-- Compact flight search form -->
+        <div class="compact-form">
+            <form action="/search" method="POST" id="searchForm">
+                <div class="form-group">
+                    <label class="form-label">Trip Type</label>
+                    <div class="trip-type-options">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="trip_type" value="Round-trip" id="roundTrip" checked>
+                            <label class="form-check-label" for="roundTrip">Round-trip</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="trip_type" value="One-way" id="oneWay">
+                            <label class="form-check-label" for="oneWay">One-way</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="departure" class="form-label">Departure</label>
+                    <input type="text" class="form-control" id="departure" name="departure" placeholder="Enter departure city or airport" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="destination" class="form-label">Destination</label>
+                    <input type="text" class="form-control" id="destination" name="destination" placeholder="Enter destination city or airport" required>
+                </div>
+
+                <!-- Date Inputs -->
+                <div class="date-inputs">
+                    <!-- Departure Date Input -->
+                    <div class="form-group" id="departure-date-group">
+                        <label for="departure_date" class="form-label">Departure Date</label>
+                        <input type="text" class="form-control" id="departure_date" name="departure_date" placeholder="Select departure date" required>
+                    </div>
+
+                    <!-- Return Date Input -->
+                    <div class="form-group" id="return-date-group">
+                        <label for="return_date" class="form-label">Return Date</label>
+                        <input type="text" class="form-control" id="return_date" name="return_date" placeholder="Select return date">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="passengers" class="form-label">Passengers</label>
+                    <select class="form-select" id="passengers" name="passengers">
+                        <option value="1">1 Adult</option>
+                        <option value="2">2 Adults</option>
+                        <option value="3">3 Adults</option>
+                        <option value="4">4 Adults</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Search</button>
+            </form>
+        </div>
+
+        <!-- Continue where you left off -->
+        {% if last_search %}
+            <div class="continue-section">
+                <h4>Continue where you left off</h4>
+                <p>
+                    {{ last_search.departure }} to {{ last_search.destination }} |
+                    {{ last_search.departure_date }}
+                    {% if last_search.trip_type == 'Round-trip' and last_search.return_date %}
+                    - {{ last_search.return_date }}
+                    {% endif %}
+                    | {{ last_search.passengers }} traveler(s) | {{ last_search.trip_type }}
+                </p>
+                <!-- Hidden form for continuing the search -->
+                <form action="/search" method="POST" id="continueSearchForm" style="display: none;">
+                    <input type="hidden" name="trip_type" value="{{ last_search.trip_type }}">
+                    <input type="hidden" name="departure" value="{{ last_search.departure }}">
+                    <input type="hidden" name="destination" value="{{ last_search.destination }}">
+                    <input type="hidden" name="departure_date" value="{{ last_search.departure_date }}">
+                    {% if last_search.trip_type == 'Round-trip' and last_search.return_date %}
+                    <input type="hidden" name="return_date" value="{{ last_search.return_date }}">
+                    {% endif %}
+                    <input type="hidden" name="passengers" value="{{ last_search.passengers }}">
+                </form>
+                <!-- Button to submit the hidden form -->
+                <button class="btn btn-secondary" onclick="document.getElementById('continueSearchForm').submit()">Continue Search</button>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- jQuery and jQuery UI -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <!-- Flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        // Airport data (city and airport codes)
+        const airports = [
+            { label: "Dallas/Fort Worth (DFW)", value: "DFW" },
+            { label: "New York (JFK)", value: "JFK" },
+            { label: "Los Angeles (LAX)", value: "LAX" },
+            { label: "Chicago (ORD)", value: "ORD" },
+            { label: "Greensboro (GSO)", value: "GSO" },
+            { label: "Atlanta (ATL)", value: "ATL" },
+            { label: "Denver (DEN)", value: "DEN" },
+            { label: "Charlotte (CLT)", value: "CLT" },
+            { label: "Las Vegas (LAS)", value: "LAS" },
+            { label: "Phoenix (PHX)", value: "PHX" },
+            { label: "Orlando (MCO)", value: "MCO" },
+            { label: "Seattle (SEA)", value: "SEA" },
+            { label: "Miami (MIA)", value: "MIA" },
+            { label: "Houston (IAH)", value: "IAH" },
+            { label: "Fort Lauderdale (FLL)", value: "FLL" },
+            { label: "Baltimore (BWI)", value: "BWI" },
+            { label: "San Francisco (SFO)", value: "SFO" },
+            { label: "Newark (EWR)", value: "EWR" },
+            { label: "Minneapolis (MSP)", value: "MSP" },
+            { label: "Detroit (DTW)", value: "DTW" },
+            { label: "Boston (BOS)", value: "BOS" },
+            { label: "Tampa (TPA)", value: "TPA" },
+            { label: "Salt Lake City (SLC)", value: "SLC" },
+            { label: "San Diego (SAN)", value: "SAN" },
+            { label: "Philadelphia (PHL)", value: "PHL" }
+        ];
+
+        // Initialize autocomplete for departure and destination inputs
+        $("#departure, #destination").autocomplete({
+            source: airports,
+            select: function(event, ui) {
+                // Set the selected airport code as the input value
+                $(this).val(ui.item.value);
+                return false;
+            }
+        }).autocomplete("instance")._renderItem = function(ul, item) {
+            // Custom rendering for autocomplete items
+            return $("<li>")
+                .append(`<div>${item.label}</div>`)
+                .appendTo(ul);
+        };
+
+        // Initialize Flatpickr for departure and return dates
+        const departureDatePicker = flatpickr("#departure_date", {
+            dateFormat: "Y-m-d",
+            minDate: "today",
+            onChange: function(selectedDates, dateStr) {
+                // Set the minimum return date to the selected departure date
+                returnDatePicker.set("minDate", dateStr);
+            }
+        });
+
+        const returnDatePicker = flatpickr("#return_date", {
+            dateFormat: "Y-m-d",
+            minDate: "today"
+        });
+
+        // Function to toggle between round-trip and one-way layouts
+        function updateDateInputs() {
+            const tripType = document.querySelector('input[name="trip_type"]:checked').value;
+            const returnDateGroup = document.getElementById("return-date-group");
+
+            if (tripType === "Round-trip") {
+                returnDateGroup.style.display = "block"; // Show return date input
+            } else {
+                returnDateGroup.style.display = "none"; // Hide return date input
+            }
+        }
+
+        // Add event listeners to trip type radio buttons
+        document.querySelectorAll('input[name="trip_type"]').forEach((radio) => {
+            radio.addEventListener("change", updateDateInputs);
+        });
+
+        // Initialize the layout based on the default trip type
+        updateDateInputs();
+    </script>
+</body>
+</html>
