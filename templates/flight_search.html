@@ -59,7 +59,11 @@
         <!-- Display logged-in user and logout button -->
         <div class="text-end mb-3">
             <span>Welcome, {{ session.username }}!</span>
-            <a href="{{ url_for('logout') }}" class="btn btn-danger ms-2">Logout</a>
+            <div class="d-flex justify-content-end">
+                <a href="{{ url_for('my_account') }}" class="btn btn-secondary btn-sm me-2">My Account</a>
+                <a href="{{ url_for('logout') }}" class="btn btn-danger btn-sm">Logout</a>
+            </div>
+        </div>
         </div>
 
         <!-- Compact flight search form -->

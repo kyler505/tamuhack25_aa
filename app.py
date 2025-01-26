@@ -178,5 +178,21 @@ def search():
     # Render the search results template with the filtered flights
     return render_template('search_results.html', results=filtered_flights, trip_type=trip_type, departure=departure, destination=destination, departure_date=departure_date, return_date=return_date, passengers=passengers)
 
+@app.route('/my_account')
+def my_account():
+    # Check if the user is logged in
+    if 'username' not in session:
+        flash('You need to log in to access this page.', 'error')
+        return redirect(url_for('login'))
+
+    # Fetch user details from the database
+    username = session['username']
+    user = database.get_user_details(username)  # Implement this function in your database module
+
+    # Fetch booking history (if applicable)
+    bookings = database.get_user_bookings(username)  # Implement this function in your database module
+
+    return render_template('my_account.html', user=user, bookings=bookings)
+
 if __name__ == '__main__':
     app.run(debug=True)
