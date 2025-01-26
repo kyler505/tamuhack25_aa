@@ -3,7 +3,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 import database  # Import the database module
 import requests  # For making HTTP requests to the Flight-Engine API
 from datetime import datetime  # For parsing and formatting dates
-
+from training import cluster
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Required for session management
@@ -27,6 +27,7 @@ def clear_session():
 @app.route('/')
 def account():
     if 'username' in session:
+    
         # Render the account.html template with the user's session data
         return render_template('account.html', user={'username': session['username']})
     return redirect(url_for('login'))
@@ -93,6 +94,7 @@ def search():
     departure_date = request.form.get('departure_date', '')
     return_date = request.form.get('return_date', '')  # Optional for one-way trips
     passengers = request.form.get('passengers', '1')  # Default to 1 Adult
+    # cluster('username')
 
     # Store the search details in the session
     session['last_search'] = {
