@@ -38,10 +38,6 @@ flights.get('/', (req, res) => {
     generatedFlights = generatedFlights.filter((flight) => flight.flightNumber === flightNumber);
   }
 
-  if (price) {
-    generatedFlights = generatedFlights.filter((flight) => flight.price === price);
-  }
-
   // Respond with matching flights
   res.json(generatedFlights);
 });
