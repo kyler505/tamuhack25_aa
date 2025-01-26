@@ -77,23 +77,18 @@ def generate_past_flights(trend, num_flights=25):
     return flights
 
 def cluster(username):
-    # fetch user data using username as parameter
+    # Fetch user data using username as parameter
     user_info = get_user_data(username)
     past_flight_dict = user_info["past_flights"]
-    # past flight is a list of dictionaries
-    # each element is a dictionary in the past_flight_dict
-    # each dictionary has keys: flight_time, price, distance
     
-    
-    # convert to dataframe
+    # Convert to DataFrame
     df = pd.DataFrame(past_flight_dict)
+    print("Original Data:")
     print(df)
     
-    # normalize the data
+    # Normalize the data
     scaler = MinMaxScaler()
-    # fit to data
     scaled_data = scaler.fit_transform(df)
-    # Transform the data
     normalized_data = scaler.transform(df)
 
     # Convert the normalized data back to a DataFrame
@@ -101,10 +96,6 @@ def cluster(username):
     print("Normalized Data:")
     print(normalized_df)
     
-    
-    # df_normalized = pd.DataFrame(scaler.fit_transform(df), columns=df.columns)
-    # print(df_normalized)
-
     # Define the number of clusters
     k = 2
 
@@ -112,15 +103,20 @@ def cluster(username):
     kmeans = KMeans(n_clusters=k, random_state=42)
     kmeans.fit(normalized_data)
     
+    # Add the cluster labels to the original DataFrame
     df["Cluster"] = pd.Categorical(kmeans.labels_)
 
+    # Calculate the mean values for each cluster (centroids)
     cluster_summary = df.groupby("Cluster", observed=True).mean()
-    print(cluster_summary)  
+    print("Cluster Summary (Centroids):")
+    print(cluster_summary)
     
-    # revert to orginal scale
-    cluster_centers_original = scaler.inverse_transform(kmeans.cluster_centers_)
+    # Convert the cluster centroids to an array of arrays
+    centroids = cluster_summary.values.tolist()
+    
+    # Return the centroids
+    return centroids
 
-    
     # Plot the clusters
     # plt.subplot(1, 3, 1)
     # sns.scatterplot(data=df, x="flight_time", y="price", hue="Cluster", palette="viridis")
