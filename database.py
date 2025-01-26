@@ -18,7 +18,8 @@ def init_db():
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE NOT NULL,
-                password_hash TEXT NOT NULL
+                password_hash TEXT NOT NULL,
+                past_flights TEXT
             )
         ''')
         
@@ -73,17 +74,37 @@ def user_exists(username):
         ''', (username,))
         return cursor.fetchone() is not None
 
-def get_user_details(username):
-    """Fetch user details from the database."""
+
+
+def get_user_data(username):
+    """Fetch a user's data from the users table."""
     with sqlite3.connect(DATABASE) as conn:
         cursor = conn.cursor()
-        cursor.execute('SELECT username FROM users WHERE username = ?', (username,))
-        user = cursor.fetchone()
-        if user:
+        cursor.execute('''
+            SELECT username, past_flights FROM users WHERE username = ?
+        ''', (username,))
+        result = cursor.fetchone()
+        if result:
             return {
-                'username': user[0]
+                "username": result[0],
+                "past_flights": json.loads(result[1]) if result[1] else []
             }
-        return None
+    return None   
+    
+def add_aa_flight(flight_time, price, distance):
+    """Add a flight to the airline_data table."""
+    try:
+        with sqlite3.connect(DATABASE) as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                INSERT INTO airline_data (flight_time, price, distance)
+                VALUES (?, ?, ?)
+            ''', (flight_time, price, distance))
+            conn.commit()
+        return True
+    except sqlite3.IntegrityError:
+        # Handle duplicate flights or other integrity errors
+        return False
 
 # clears the airline table
 def clear_airline_data():
@@ -95,13 +116,13 @@ def clear_airline_data():
         print("Cleared airline_data table.")
 
 # # remove and add new users
-# def delete_all_users():
-#     """Delete all rows from the users table."""
-#     with sqlite3.connect(DATABASE) as conn:
-#         cursor = conn.cursor()
-#         cursor.execute('DELETE FROM users')
-#         conn.commit()
-#         print("All users deleted successfully.")
+def delete_all_users():
+    """Delete all rows from the users table."""
+    with sqlite3.connect(DATABASE) as conn:
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM users')
+        conn.commit()
+        print("All users deleted successfully.")
 
 # def add_past_flights_column():
 #     """Add the past_flights column to the users table."""

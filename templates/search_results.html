@@ -365,7 +365,7 @@
                     <h6>Stops</h6>
                     <p><a href="#" onclick="filterStops('any')">Any {{ results|length }}</a></p>
                     <p><a href="#" onclick="filterStops('direct')">Direct only 78</a></p>
-                </div>
+                </div> 
 
                 <!-- Sorting Form -->
                 <form action="{{ url_for('search') }}" method="POST" id="sortForm">
@@ -384,6 +384,11 @@
                         </select>
                     </div>
                 </form>
+
+                <!-- Add the Pull Data Button -->
+                <div class="pull-data-filter">
+                    <button class="btn btn-secondary" onclick="pullData()">Pull Data</button>
+                </div>
             </div>
         </div>
 
@@ -710,6 +715,24 @@
         document.addEventListener('DOMContentLoaded', () => {
             sortFlights(); // Sort by the default option (cheapest)
         });
+
+        function pullData() {
+            fetch('/pull_data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+                alert(data.message);  // Show a success message
+            })
+            /* .catch((error) => {
+                console.error('Error:', error);
+                alert('Failed to pull data');  // Show an error message
+            }); */
+        }
     </script>
 </body>
 </html>

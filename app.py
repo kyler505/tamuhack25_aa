@@ -5,14 +5,39 @@ import requests  # For making HTTP requests to the Flight-Engine API
 from datetime import datetime  # For parsing and formatting dates
 
 
+import init
+import training
+
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Required for session management
 
 # Initialize the database
 database.init_db()
+init.main()
 
 # Flight-Engine API base URL
 FLIGHT_ENGINE_API_URL = 'http://localhost:4000'  
+
+
+def parse_duration(duration_str):
+    """
+    Convert a duration string like "3h 45m" to a float representing total hours.
+    """
+    if not duration_str:
+        return 0.0
+
+    hours = 0.0
+    minutes = 0.0
+
+    # Split the string into hours and minutes
+    if 'h' in duration_str:
+        hours = float(duration_str.split('h')[0])
+    if 'm' in duration_str:
+        minutes = float(duration_str.split('m')[0].split('h')[-1])
+
+    # Convert minutes to hours
+    total_hours = hours + (minutes / 60)
+    return total_hours
 
 @app.before_request
 def clear_session():
@@ -67,6 +92,17 @@ def logout():
     session.pop('username', None)  # Remove the username from the session
     return redirect(url_for('login'))  # Redirect to login page without a success message
 
+@app.route('/pull_data', methods=['POST'])
+def pull_data():
+    # Uses the cluster function from the training module to generate clusters based on the current user
+    # Get the current user's data from the database
+    user_data = database.get_user_data(session['username'])
+    if user_data:
+        # Generate clusters based on the user's past flights
+        training.cluster(user_data['username'])
+
+    return "Yes"
+
 @app.route('/flight_search')
 def flight_search():
     # Check if the user is logged in
@@ -77,27 +113,6 @@ def flight_search():
     # Retrieve the user's last search from the session
     last_search = session.get('last_search', None)
     return render_template('flight_search.html', last_search=last_search)
-
-
-def parse_duration(duration_str):
-    """
-    Convert a duration string like "3h 45m" to a float representing total hours.
-    """
-    if not duration_str:
-        return 0.0
-
-    hours = 0.0
-    minutes = 0.0
-
-    # Split the string into hours and minutes
-    if 'h' in duration_str:
-        hours = float(duration_str.split('h')[0])
-    if 'm' in duration_str:
-        minutes = float(duration_str.split('m')[0].split('h')[-1])
-
-    # Convert minutes to hours
-    total_hours = hours + (minutes / 60)
-    return total_hours
 
 @app.route('/search', methods=['POST'])
 def search():
