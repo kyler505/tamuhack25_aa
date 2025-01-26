@@ -69,12 +69,22 @@ def flight_search():
 @app.route('/search', methods=['POST'])
 def search():
     # Get form data from the search query
-    trip_type = request.form.get('trip_type', 'Round-trip')
-    departure = request.form.get('departure', '').upper()
-    destination = request.form.get('destination', '').upper()
+    trip_type = request.form.get('trip_type', 'Round-trip')  # Default to Round-trip
+    departure = request.form.get('departure', '').upper()  # Convert to uppercase for IATA code
+    destination = request.form.get('destination', '').upper()  # Convert to uppercase for IATA code
     departure_date = request.form.get('departure_date', '')
-    return_date = request.form.get('return_date', '')
-    passengers = request.form.get('passengers', '1')
+    return_date = request.form.get('return_date', '')  # Optional for one-way trips
+    passengers = request.form.get('passengers', '1')  # Default to 1 Adult
+
+    # Store the search details in the session
+    session['last_search'] = {
+        'trip_type': trip_type,
+        'departure': departure,
+        'destination': destination,
+        'departure_date': departure_date,
+        'return_date': return_date if trip_type == 'Round-trip' else None,  # Save return_date only for round-trips
+        'passengers': passengers
+    }
 
     # Get price range from the form (if provided)
     min_price = float(request.form.get('min_price', 0))
@@ -110,7 +120,7 @@ def search():
             outbound_arrival_time = datetime.strptime(outbound_flight.get("arrivalTime"), "%Y-%m-%dT%H:%M:%S.%f%z")
 
             outbound_data = {
-                "airline": "Unknown Airline",
+                "airline": "American Airlines",
                 "departure_time": outbound_departure_time.strftime("%I:%M %p"),  # Format as "03:46 AM"
                 "departure_date": outbound_departure_time.strftime("%b %d, %Y"),  # Format as "Jan 25, 2025"
                 "departure_airport": outbound_flight.get("origin", {}).get("code", "N/A"),
@@ -121,6 +131,7 @@ def search():
                 "arrival_city": outbound_flight.get("destination", {}).get("city", "N/A"),
                 "duration": outbound_flight.get("duration", {}).get("locale", "N/A"),
                 "price": outbound_flight.get("price", "N/A"),
+                "aircraft": outbound_flight.get("aircraft", {}).get("model", "N/A"),
             }
 
             # For round-trip, pair outbound flight with a return flight
@@ -133,7 +144,7 @@ def search():
                         return_arrival_time = datetime.strptime(return_flight.get("arrivalTime"), "%Y-%m-%dT%H:%M:%S.%f%z")
 
                         return_data = {
-                            "airline": "Unknown Airline",
+                            "airline": "American Airlines",
                             "departure_time": return_departure_time.strftime("%I:%M %p"),  # Format as "03:46 AM"
                             "departure_date": return_departure_time.strftime("%b %d, %Y"),  # Format as "Jan 25, 2025"
                             "departure_airport": return_flight.get("origin", {}).get("code", "N/A"),
@@ -144,6 +155,7 @@ def search():
                             "arrival_city": return_flight.get("destination", {}).get("city", "N/A"),
                             "duration": return_flight.get("duration", {}).get("locale", "N/A"),
                             "price": return_price,
+                            "aircraft": return_flight.get("aircraft", {}).get("model", "N/A"),
                         }
 
                         # Calculate combined price for round-trip
@@ -160,7 +172,7 @@ def search():
                 filtered_flights.append({
                     "outbound": outbound_data,
                     "return": None,
-                    "combined_price": outbound_price,
+                    "combined_price": f"{outbound_price:.2f}",
                 })
 
     # Render the search results template with the filtered flights

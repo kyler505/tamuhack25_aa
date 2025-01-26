@@ -120,25 +120,30 @@
 
         <!-- Continue where you left off -->
         {% if last_search %}
-        <div class="continue-section">
-            <h4>Continue where you left off</h4>
-            <p>
-                {{ last_search.departure }} to {{ last_search.destination }} |
-                {{ last_search.departure_date }} - {{ last_search.return_date }} |
-                {{ last_search.passengers }} traveler(s) | {{ last_search.trip_type }}
-            </p>
-            <!-- Hidden form for continuing the search -->
-            <form action="/search" method="POST" id="continueSearchForm" style="display: none;">
-                <input type="hidden" name="trip_type" value="{{ last_search.trip_type }}">
-                <input type="hidden" name="departure" value="{{ last_search.departure }}">
-                <input type="hidden" name="destination" value="{{ last_search.destination }}">
-                <input type="hidden" name="departure_date" value="{{ last_search.departure_date }}">
-                <input type="hidden" name="return_date" value="{{ last_search.return_date }}">
-                <input type="hidden" name="passengers" value="{{ last_search.passengers }}">
-            </form>
-            <!-- Button to submit the hidden form -->
-            <button class="btn btn-secondary" onclick="document.getElementById('continueSearchForm').submit()">Continue Search</button>
-        </div>
+            <div class="continue-section">
+                <h4>Continue where you left off</h4>
+                <p>
+                    {{ last_search.departure }} to {{ last_search.destination }} |
+                    {{ last_search.departure_date }}
+                    {% if last_search.trip_type == 'Round-trip' and last_search.return_date %}
+                    - {{ last_search.return_date }}
+                    {% endif %}
+                    | {{ last_search.passengers }} traveler(s) | {{ last_search.trip_type }}
+                </p>
+                <!-- Hidden form for continuing the search -->
+                <form action="/search" method="POST" id="continueSearchForm" style="display: none;">
+                    <input type="hidden" name="trip_type" value="{{ last_search.trip_type }}">
+                    <input type="hidden" name="departure" value="{{ last_search.departure }}">
+                    <input type="hidden" name="destination" value="{{ last_search.destination }}">
+                    <input type="hidden" name="departure_date" value="{{ last_search.departure_date }}">
+                    {% if last_search.trip_type == 'Round-trip' and last_search.return_date %}
+                    <input type="hidden" name="return_date" value="{{ last_search.return_date }}">
+                    {% endif %}
+                    <input type="hidden" name="passengers" value="{{ last_search.passengers }}">
+                </form>
+                <!-- Button to submit the hidden form -->
+                <button class="btn btn-secondary" onclick="document.getElementById('continueSearchForm').submit()">Continue Search</button>
+            </div>
         {% endif %}
     </div>
 
