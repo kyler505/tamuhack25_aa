@@ -17,18 +17,13 @@ FLIGHT_ENGINE_API_URL = 'http://localhost:4000'
 @app.before_request
 def clear_session():
     if not hasattr(app, 'session_cleared'):
-        # Save the last_search data before clearing the session
-        last_search = session.get('last_search')
         session.clear()
-        if last_search:
-            session['last_search'] = last_search  # Restore last_search
         app.session_cleared = True
 
 @app.route('/')
-def account():
+def my_account():
     if 'username' in session:
-        # Render the account.html template with the user's session data
-        return render_template('account.html', user={'username': session['username']})
+        return redirect(url_for('flight_search'))
     return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
