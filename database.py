@@ -74,7 +74,11 @@ def user_exists(username):
         ''', (username,))
         return cursor.fetchone() is not None
 
-
+def special_filter(username, origin, destination):
+    with sqlite3.connect(DATABASE) as conn:
+        cursor = conn.cursor()
+        # filter out fllights that do not fit within the trend given by the cluster analysis
+        cursor.execute('''SELECT * FROM flight_data WHERE price < 500 AND origin = ? AND destination = ?''', (origin, destination))
 
 def get_user_data(username):
     """Fetch a user's data from the users table."""

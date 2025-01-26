@@ -44,19 +44,19 @@ def generate_past_flights(trend, num_flights=25):
     for _ in range(num_flights):
         if trend == "early_flight_time":
             # Cluster around early departure times (e.g., 6 AM to 9 AM)
-            departure_time = round(random.gauss(7.0, 1.0), 2)  # Mean = 7:00 AM, Std Dev = 1.0
+            departure_time = round(random.gauss(7.0, 0.2), 2)  # Mean = 7:00 AM, Std Dev = 1.0
             price = round(random.gauss(300.0, 50.0), 2)        # Moderate price
             distance = round(random.gauss(450.0, 100.0), 2)    # Moderate distance
         elif trend == "low_price":
             # Cluster around midday departure times (e.g., 12 PM to 3 PM)
-            departure_time = round(random.gauss(13.0, 1.0), 2) # Mean = 1:00 PM, Std Dev = 1.0
-            price = round(random.gauss(200.0, 30.0), 2)        # Low price
+            departure_time = round(random.gauss(13.0, 2.0), 2) # Mean = 1:00 PM, Std Dev = 1.0
+            price = round(random.gauss(200.0, 15), 2)        # Low price
             distance = round(random.gauss(350.0, 75.0), 2)     # Short to moderate distance
         elif trend == "long_distance":
             # Cluster around late-night departure times (e.g., 10 PM to 1 AM)
             departure_time = round(random.gauss(23.0, 1.0), 2) # Mean = 11:00 PM, Std Dev = 1.0
             price = round(random.gauss(750.0, 100.0), 2)       # High price
-            distance = round(random.gauss(1500.0, 200.0), 2)   # Long distance
+            distance = round(random.gauss(2000.0, 100.0), 2)   # Long distance
         else:
             # Random data without clustering
             departure_time = round(random.uniform(0.0, 24.0), 2)
@@ -117,31 +117,40 @@ def cluster(username):
     cluster_summary = df.groupby("Cluster", observed=True).mean()
     print(cluster_summary)  
     
+    # Convert the cluster_summary DataFrame to a list of lists
+    summarized_data_lists = cluster_summary.values.tolist()
+
+    # Print the summarized data
+    for cluster_label, summary in enumerate(summarized_data_lists):
+        print(f"Cluster {cluster_label}: {summary}")
+    
     # revert to orginal scale
     cluster_centers_original = scaler.inverse_transform(kmeans.cluster_centers_)
 
     
     # Plot the clusters
-    # plt.subplot(1, 3, 1)
-    # sns.scatterplot(data=df, x="flight_time", y="price", hue="Cluster", palette="viridis")
-    # plt.title("Flight Time vs. Price")
-    # plt.xlabel("Flight Time (hours)")
-    # plt.ylabel("Price ($)")
+    plt.subplot(1, 3, 1)
+    sns.scatterplot(data=df, x="flight_time", y="price", hue="Cluster", palette="viridis")
+    plt.title("Flight Time vs. Price")
+    plt.xlabel("Flight Time (hours)")
+    plt.ylabel("Price ($)")
     
-    # # Plot 2: flight_time vs. distance
-    # plt.subplot(1, 3, 2)
-    # sns.scatterplot(data=df, x="flight_time", y="distance", hue="Cluster", palette="viridis")
-    # plt.title("Flight Time vs. Distance")
-    # plt.xlabel("Flight Time (hours)")
-    # plt.ylabel("Distance (miles)")
+    # Plot 2: flight_time vs. distance
+    plt.subplot(1, 3, 2)
+    sns.scatterplot(data=df, x="flight_time", y="distance", hue="Cluster", palette="viridis")
+    plt.title("Flight Time vs. Distance")
+    plt.xlabel("Flight Time (hours)")
+    plt.ylabel("Distance (miles)")
     
-    # # Plot 3: price vs. distance
-    # plt.subplot(1, 3, 3)
-    # sns.scatterplot(data=df, x="price", y="distance", hue="Cluster", palette="viridis")
-    # plt.title("Price vs. Distance")
-    # plt.xlabel("Price ($)")
-    # plt.ylabel("Distance (miles)")
+    # Plot 3: price vs. distance
+    plt.subplot(1, 3, 3)
+    sns.scatterplot(data=df, x="price", y="distance", hue="Cluster", palette="viridis")
+    plt.title("Price vs. Distance")
+    plt.xlabel("Price ($)")
+    plt.ylabel("Distance (miles)")
     
-    # plt.tight_layout()
-    # plt.show()
+    plt.tight_layout()
+    plt.show()
     
+def filter_flight(username, max_price=None, max_distance=None):
+    pass

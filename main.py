@@ -1,9 +1,8 @@
 import json
 import os
-from database import init_db, add_user, clear_airline_data, add_aa_flight
+from database import init_db, add_user, clear_airline_data, add_aa_flight, delete_all_users
 
 from training import generate_past_flights, cluster
-from flask import session
 
 def main():
     # initialize the database
